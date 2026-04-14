@@ -432,8 +432,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
         <h4 style="margin:0 0 12px 0;font-size:.85rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary)">
           <i class="fas fa-robot" style="margin-right:6px;color:var(--accent-gold)"></i>AI-analys
         </h4>
+        <div style="margin-bottom:10px">
+          <select id="pcAiPolicy" style="width:100%;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:.85rem">
+            <option value="">-- Valj analysroll --</option>
+          </select>
+        </div>
+        <div id="pcAiPolicyDesc" style="font-size:.78rem;color:var(--text-muted);margin-bottom:10px;display:none"></div>
         <div id="pcAiAnalysis" style="color:var(--text-secondary);font-size:.9rem;line-height:1.6">
-          Klicka "Analysera" for AI-driven insikt om detta omrade.
+          Valj en analysroll ovan och klicka "Analysera".
         </div>
         <button class="btn btn-secondary btn-sm" onclick="runAiAnalysis()" id="pcAiBtn" style="margin-top:10px">
           <i class="fas fa-brain"></i> Analysera med AI
@@ -580,6 +586,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
   </div>
   <div class="tabs">
     <button class="tab-btn active" onclick="showAdminTab('users')">Users</button>
+    <button class="tab-btn" onclick="showAdminTab('policies')">AI Policies</button>
     <button class="tab-btn" onclick="showAdminTab('import')">Data Import</button>
     <button class="tab-btn" onclick="showAdminTab('settings')">Settings</button>
   </div>
@@ -589,6 +596,58 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
         <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead>
         <tbody id="adminUsersBody"></tbody>
       </table>
+    </div>
+  </div>
+  <div class="tab-panel" id="admin-policies">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="margin:0;font-size:1rem"><i class="fas fa-robot" style="color:var(--accent-gold);margin-right:8px"></i>AI Analysis Policies</h3>
+      <button class="btn btn-primary btn-sm" onclick="showPolicyEditor()"><i class="fas fa-plus"></i> New Policy</button>
+    </div>
+    <div id="policiesList"></div>
+
+    <!-- Policy Editor (hidden by default) -->
+    <div id="policyEditor" style="display:none;margin-top:16px">
+      <div class="card">
+        <h4 style="margin:0 0 14px 0" id="policyEditorTitle">New Policy</h4>
+        <input type="hidden" id="policyEditId">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <label style="font-size:.75rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px">Name (Swedish)</label>
+            <input type="text" id="policyName" placeholder="t.ex. Kampanjstrateg" style="width:100%;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:.9rem;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="font-size:.75rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px">Name (English)</label>
+            <input type="text" id="policyNameEn" placeholder="e.g. Campaign Strategist" style="width:100%;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:.9rem;box-sizing:border-box">
+          </div>
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:.75rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px">Description</label>
+          <input type="text" id="policyDesc" placeholder="Short description of what this policy analyzes" style="width:100%;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:.9rem;box-sizing:border-box">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <label style="font-size:.75rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px">Icon (FontAwesome)</label>
+            <input type="text" id="policyIcon" value="fa-robot" placeholder="fa-robot" style="width:100%;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:.9rem;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="font-size:.75rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px">Color</label>
+            <input type="color" id="policyColor" value="#c9a227" style="width:100%;height:38px;background:transparent;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+          </div>
+          <div>
+            <label style="font-size:.75rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px">Sort Order</label>
+            <input type="number" id="policySort" value="0" style="width:100%;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:.9rem;box-sizing:border-box">
+          </div>
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:.75rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px">Prompt Template</label>
+          <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:4px">Use {area_data} where the election data should be inserted</div>
+          <textarea id="policyPrompt" rows="12" placeholder="Write the AI prompt template here. Use {area_data} as placeholder for the area's election and demographic data." style="width:100%;padding:10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:.85rem;font-family:var(--mono);resize:vertical;box-sizing:border-box;line-height:1.5"></textarea>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="savePolicy()"><i class="fas fa-save"></i> Save Policy</button>
+          <button class="btn btn-ghost" onclick="cancelPolicyEdit()"><i class="fas fa-times"></i> Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
   <div class="tab-panel" id="admin-import">
@@ -1070,10 +1129,12 @@ function renderPostcodeResults(data){
   var vc = data.voters_in_area || 0;
   document.getElementById('pcVoterCount').textContent = vc > 0 ? vc + ' valjare' : '';
 
-  // Reset AI analysis
-  document.getElementById('pcAiAnalysis').textContent = 'Klicka "Analysera" for AI-driven insikt om detta omrade.';
+  // Load AI policies dropdown and reset
+  loadAiPoliciesDropdown();
+  document.getElementById('pcAiAnalysis').textContent = 'Valj en analysroll ovan och klicka "Analysera".';
   document.getElementById('pcAiBtn').disabled = false;
   document.getElementById('pcAiBtn').innerHTML = '<i class="fas fa-brain"></i> Analysera med AI';
+  document.getElementById('pcAiPolicyDesc').style.display = 'none';
 }
 
 function renderResultBars(containerId, results){
@@ -1170,6 +1231,7 @@ async function runAiAnalysis(){
   container.innerHTML = '<div style="color:var(--text-muted)"><i class="fas fa-spinner fa-spin"></i> AI analyserar omradet...</div>';
 
   try {
+    var policyId = document.getElementById('pcAiPolicy').value || null;
     var body = {
       county_code: _pcData.county ? _pcData.county.code : null,
       postcode: _pcData.postcode,
@@ -1177,7 +1239,8 @@ async function runAiAnalysis(){
       municipality_name: _pcData.municipality ? _pcData.municipality.name : null,
       results_2022: _pcData.election_results['2022'] || [],
       results_2018: _pcData.election_results['2018'] || [],
-      demographics: _pcData.demographics
+      demographics: _pcData.demographics,
+      policy_id: policyId
     };
     var resp = await fetch(API_BASE + '/ai/analyze-area', {
       method:'POST',
@@ -1491,14 +1554,130 @@ async function loadResults(){
 function showAdminTab(tab){
   document.querySelectorAll('#page-admin .tab-panel').forEach(function(p){ p.classList.remove('active'); });
   document.getElementById('admin-'+tab).classList.add('active');
+  var tabs = ['users','policies','import','settings'];
   document.querySelectorAll('#page-admin .tab-btn').forEach(function(b,i){
-    b.classList.toggle('active', (i===0&&tab==='users')||(i===1&&tab==='import')||(i===2&&tab==='settings'));
+    b.classList.toggle('active', tabs[i]===tab);
   });
   if(tab === 'users') loadAdminUsers();
+  if(tab === 'policies') loadAdminPolicies();
 }
 window.showAdminTab = showAdminTab;
 
 async function loadAdmin(){ loadAdminUsers(); }
+
+// ═══ AI POLICIES ADMIN ═══
+var _policiesCache = [];
+
+async function loadAdminPolicies(){
+  try {
+    var data = await apiFetch('/ai/policies/all');
+    _policiesCache = data.data || [];
+    var html = '';
+    _policiesCache.forEach(function(p){
+      var active = p.is_active ? '<span class="badge badge-active">Active</span>' : '<span class="badge badge-opposition">Inactive</span>';
+      html += '<div class="card" style="margin-bottom:10px;padding:14px">';
+      html += '<div style="display:flex;align-items:center;gap:10px">';
+      html += '<div style="width:36px;height:36px;border-radius:8px;background:'+(p.color||'#c9a227')+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas '+(p.icon||'fa-robot')+'" style="color:#fff;font-size:.9rem"></i></div>';
+      html += '<div style="flex:1"><strong style="font-size:.95rem">'+p.name+'</strong>';
+      if(p.name_en) html += ' <span style="color:var(--text-muted);font-size:.8rem">('+p.name_en+')</span>';
+      html += '<div style="font-size:.8rem;color:var(--text-secondary);margin-top:2px">'+(p.description||'No description')+'</div></div>';
+      html += active;
+      html += '<button class="btn btn-ghost btn-sm" onclick="editPolicy(\''+p.id+'\')"><i class="fas fa-pen"></i></button>';
+      html += '<button class="btn btn-ghost btn-sm" onclick="deletePolicy(\''+p.id+'\',\''+p.name.replace(/'/g,"\\'")+'\')" style="color:#e74c3c"><i class="fas fa-trash"></i></button>';
+      html += '</div></div>';
+    });
+    if(_policiesCache.length === 0) html = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No AI policies yet. Click "New Policy" to create one.</div>';
+    document.getElementById('policiesList').innerHTML = html;
+  } catch(e){ console.error('Load policies error:', e); }
+}
+
+function showPolicyEditor(policy){
+  document.getElementById('policyEditor').style.display = '';
+  document.getElementById('policyEditorTitle').textContent = policy ? 'Edit Policy' : 'New Policy';
+  document.getElementById('policyEditId').value = policy ? policy.id : '';
+  document.getElementById('policyName').value = policy ? policy.name : '';
+  document.getElementById('policyNameEn').value = policy ? (policy.name_en||'') : '';
+  document.getElementById('policyDesc').value = policy ? (policy.description||'') : '';
+  document.getElementById('policyIcon').value = policy ? (policy.icon||'fa-robot') : 'fa-robot';
+  document.getElementById('policyColor').value = policy ? (policy.color||'#c9a227') : '#c9a227';
+  document.getElementById('policySort').value = policy ? (policy.sort_order||0) : 0;
+  document.getElementById('policyPrompt').value = policy ? (policy.prompt_template||'') : '';
+}
+window.showPolicyEditor = showPolicyEditor;
+
+function cancelPolicyEdit(){
+  document.getElementById('policyEditor').style.display = 'none';
+}
+window.cancelPolicyEdit = cancelPolicyEdit;
+
+function editPolicy(id){
+  var p = _policiesCache.find(function(x){return x.id===id});
+  if(p) showPolicyEditor(p);
+}
+window.editPolicy = editPolicy;
+
+async function savePolicy(){
+  var id = document.getElementById('policyEditId').value;
+  var body = {
+    name: document.getElementById('policyName').value.trim(),
+    name_en: document.getElementById('policyNameEn').value.trim(),
+    description: document.getElementById('policyDesc').value.trim(),
+    icon: document.getElementById('policyIcon').value.trim(),
+    color: document.getElementById('policyColor').value,
+    sort_order: parseInt(document.getElementById('policySort').value) || 0,
+    prompt_template: document.getElementById('policyPrompt').value
+  };
+  if(!body.name){ showAlert('Name is required','warning'); return; }
+  if(!body.prompt_template){ showAlert('Prompt template is required','warning'); return; }
+  try {
+    if(id){
+      await apiFetch('/ai/policies/'+id, {method:'PUT', body:JSON.stringify(body)});
+    } else {
+      await apiFetch('/ai/policies', {method:'POST', body:JSON.stringify(body)});
+    }
+    cancelPolicyEdit();
+    loadAdminPolicies();
+    loadAiPoliciesDropdown();
+    showAlert('Policy saved!','success');
+  } catch(e){ showAlert('Failed to save policy','error'); }
+}
+window.savePolicy = savePolicy;
+
+async function deletePolicy(id, name){
+  if(!confirm('Delete policy "'+name+'"?')) return;
+  try {
+    await apiFetch('/ai/policies/'+id, {method:'DELETE'});
+    loadAdminPolicies();
+    loadAiPoliciesDropdown();
+    showAlert('Policy deleted','success');
+  } catch(e){ showAlert('Failed to delete','error'); }
+}
+window.deletePolicy = deletePolicy;
+
+// Load policies dropdown for map AI analysis
+async function loadAiPoliciesDropdown(){
+  try {
+    var data = await apiFetch('/ai/policies');
+    var policies = data.data || [];
+    var sel = document.getElementById('pcAiPolicy');
+    sel.innerHTML = '<option value="">-- Valj analysroll --</option>';
+    policies.forEach(function(p){
+      sel.innerHTML += '<option value="'+p.id+'" data-desc="'+(p.description||'').replace(/"/g,'&quot;')+'" data-icon="'+(p.icon||'')+'" data-color="'+(p.color||'')+'">'+p.name+'</option>';
+    });
+    // Show description on change
+    sel.onchange = function(){
+      var opt = sel.options[sel.selectedIndex];
+      var desc = opt.getAttribute('data-desc');
+      var descEl = document.getElementById('pcAiPolicyDesc');
+      if(desc){
+        descEl.textContent = desc;
+        descEl.style.display = '';
+      } else {
+        descEl.style.display = 'none';
+      }
+    };
+  } catch(e){}
+}
 
 async function loadAdminUsers(){
   try {

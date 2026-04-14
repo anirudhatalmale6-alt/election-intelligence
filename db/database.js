@@ -309,6 +309,24 @@ db.exec(`
   );
 
   -- ═══════════════════════════════════════════════════════════
+  -- AI ANALYSIS POLICIES
+  -- ═══════════════════════════════════════════════════════════
+  CREATE TABLE IF NOT EXISTS ai_policies (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    name_en TEXT,
+    description TEXT,
+    icon TEXT DEFAULT 'fa-robot',
+    color TEXT DEFAULT '#c9a227',
+    prompt_template TEXT NOT NULL,
+    is_active INTEGER DEFAULT 1,
+    sort_order INTEGER DEFAULT 0,
+    created_by TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+  );
+
+  -- ═══════════════════════════════════════════════════════════
   -- POSTCODE SEARCH LOG
   -- ═══════════════════════════════════════════════════════════
   CREATE TABLE IF NOT EXISTS postcode_searches (

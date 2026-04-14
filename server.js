@@ -278,38 +278,99 @@ app.post(BASE + '/api/voters/bulk-import', express.json({ limit: '50mb' }), (req
   }
 });
 
-// API: AI Analysis of area
+// ═══ AI POLICIES CRUD ═══
+app.get(BASE + '/api/ai/policies', (req, res) => {
+  try {
+    const policies = db.prepare('SELECT * FROM ai_policies WHERE is_active = 1 ORDER BY sort_order, name').all();
+    res.json({ data: policies });
+  } catch (err) { res.status(500).json({ error: 'Failed to get policies' }); }
+});
+
+app.get(BASE + '/api/ai/policies/all', (req, res) => {
+  try {
+    const policies = db.prepare('SELECT * FROM ai_policies ORDER BY sort_order, name').all();
+    res.json({ data: policies });
+  } catch (err) { res.status(500).json({ error: 'Failed to get policies' }); }
+});
+
+app.post(BASE + '/api/ai/policies', express.json(), (req, res) => {
+  try {
+    const { name, name_en, description, icon, color, prompt_template, sort_order } = req.body;
+    if (!name || !prompt_template) return res.status(400).json({ error: 'name and prompt_template required' });
+    const { v4: uuidv4 } = require('uuid');
+    const id = uuidv4();
+    db.prepare('INSERT INTO ai_policies (id, name, name_en, description, icon, color, prompt_template, sort_order) VALUES (?,?,?,?,?,?,?,?)')
+      .run(id, name, name_en || null, description || null, icon || 'fa-robot', color || '#c9a227', prompt_template, sort_order || 0);
+    const policy = db.prepare('SELECT * FROM ai_policies WHERE id = ?').get(id);
+    res.status(201).json({ data: policy });
+  } catch (err) { res.status(500).json({ error: 'Failed to create policy' }); }
+});
+
+app.put(BASE + '/api/ai/policies/:id', express.json(), (req, res) => {
+  try {
+    const policy = db.prepare('SELECT * FROM ai_policies WHERE id = ?').get(req.params.id);
+    if (!policy) return res.status(404).json({ error: 'Policy not found' });
+    const { name, name_en, description, icon, color, prompt_template, is_active, sort_order } = req.body;
+    db.prepare(`UPDATE ai_policies SET name=COALESCE(?,name), name_en=COALESCE(?,name_en), description=COALESCE(?,description),
+      icon=COALESCE(?,icon), color=COALESCE(?,color), prompt_template=COALESCE(?,prompt_template),
+      is_active=COALESCE(?,is_active), sort_order=COALESCE(?,sort_order), updated_at=datetime('now') WHERE id=?`)
+      .run(name||null, name_en||null, description||null, icon||null, color||null, prompt_template||null,
+        is_active!==undefined?is_active:null, sort_order!==undefined?sort_order:null, req.params.id);
+    const updated = db.prepare('SELECT * FROM ai_policies WHERE id = ?').get(req.params.id);
+    res.json({ data: updated });
+  } catch (err) { res.status(500).json({ error: 'Failed to update policy' }); }
+});
+
+app.delete(BASE + '/api/ai/policies/:id', (req, res) => {
+  try {
+    db.prepare('DELETE FROM ai_policies WHERE id = ?').run(req.params.id);
+    res.json({ message: 'Policy deleted' });
+  } catch (err) { res.status(500).json({ error: 'Failed to delete policy' }); }
+});
+
+// API: AI Analysis of area (with policy support)
 app.post(BASE + '/api/ai/analyze-area', express.json(), async (req, res) => {
   try {
-    const { county_code, postcode, results_2022, results_2018, demographics } = req.body;
+    const { county_code, postcode, results_2022, results_2018, demographics, policy_id } = req.body;
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'AI service not configured' });
 
-    // Build context for AI
-    let prompt = `Du ar en svensk valanalytiker. Analysera foljande valdata for detta omrade.\n\n`;
-    if (postcode) prompt += `Postnummer: ${postcode}\n`;
-    if (req.body.county_name) prompt += `Lan: ${req.body.county_name}\n`;
-    if (req.body.municipality_name) prompt += `Kommun: ${req.body.municipality_name}\n\n`;
+    // Build area data string
+    let areaData = '';
+    if (postcode) areaData += `Postnummer: ${postcode}\n`;
+    if (req.body.county_name) areaData += `Lan: ${req.body.county_name}\n`;
+    if (req.body.municipality_name) areaData += `Kommun: ${req.body.municipality_name}\n`;
+    areaData += '\n';
 
     if (results_2022 && results_2022.length > 0) {
-      prompt += `Riksdagsval 2022:\n`;
-      results_2022.forEach(r => { prompt += `  ${r.party_code}: ${r.vote_percentage}%\n`; });
+      areaData += `Riksdagsval 2022:\n`;
+      results_2022.forEach(r => { areaData += `  ${r.party_code}: ${r.vote_percentage}%\n`; });
     }
     if (results_2018 && results_2018.length > 0) {
-      prompt += `\nRiksdagsval 2018:\n`;
-      results_2018.forEach(r => { prompt += `  ${r.party_code}: ${r.vote_percentage}%\n`; });
+      areaData += `\nRiksdagsval 2018:\n`;
+      results_2018.forEach(r => { areaData += `  ${r.party_code}: ${r.vote_percentage}%\n`; });
     }
     if (demographics) {
-      prompt += `\nDemografi:\n`;
-      prompt += `  Befolkning: ${demographics.population}\n`;
-      prompt += `  Medianinkomst: ${demographics.median_income} SEK\n`;
-      prompt += `  Medianålder: ${demographics.median_age}\n`;
-      prompt += `  Utrikesfödda: ${demographics.foreign_born_pct}%\n`;
-      prompt += `  Högre utbildning: ${demographics.higher_education_pct}%\n`;
-      prompt += `  Arbetslöshet: ${demographics.unemployment_pct}%\n`;
+      areaData += `\nDemografi:\n`;
+      areaData += `  Befolkning: ${demographics.population}\n`;
+      areaData += `  Medianinkomst: ${demographics.median_income} SEK\n`;
+      areaData += `  Mediainalder: ${demographics.median_age}\n`;
+      areaData += `  Utrikesfoddda: ${demographics.foreign_born_pct}%\n`;
+      areaData += `  Hogre utbildning: ${demographics.higher_education_pct}%\n`;
+      areaData += `  Arbetsloshet: ${demographics.unemployment_pct}%\n`;
     }
 
-    prompt += `\nGe en kort analys (max 300 ord) pa svenska med:\n1. Politisk profil - vilken typ av omrade ar detta?\n2. Trender - hur har rostvariationen andrats mellan 2018 och 2022?\n3. Nyckelfaktorer - vilka demografiska faktorer paverkar rosten?\n4. Kampanjstrategi - vad bor en kampanj fokusera pa i detta omrade?\n\nSvara med ren text, ingen markdown-formattering.`;
+    // Get policy prompt template or use default
+    let prompt;
+    if (policy_id) {
+      const policy = db.prepare('SELECT * FROM ai_policies WHERE id = ?').get(policy_id);
+      if (policy) {
+        prompt = policy.prompt_template.replace('{area_data}', areaData);
+      }
+    }
+    if (!prompt) {
+      prompt = `Du ar en svensk valanalytiker. Analysera foljande valdata for detta omrade.\n\n${areaData}\nGe en kort analys (max 300 ord) pa svenska med:\n1. Politisk profil\n2. Trender mellan 2018 och 2022\n3. Nyckelfaktorer\n4. Kampanjstrategi\n\nSvara med ren text, ingen markdown-formattering.`;
+    }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -320,7 +381,7 @@ app.post(BASE + '/api/ai/analyze-area', express.json(), async (req, res) => {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 800,
+        max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }]
       })
     });
