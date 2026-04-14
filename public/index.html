@@ -244,6 +244,22 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
       <div class="brand-sub">Election Intelligence</div>
     </div>
   </div>
+  <!-- User Profile -->
+  <div id="userProfile" class="sidebar-user" style="padding:14px 16px;border-bottom:1px solid var(--border);display:none">
+    <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="toggleUserMenu()">
+      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#8b6914);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#000;flex-shrink:0" id="userAvatar">?</div>
+      <div style="flex:1;min-width:0;overflow:hidden">
+        <div style="font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="userName">User</div>
+        <div style="font-size:.7rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="userRole">-</div>
+      </div>
+      <i class="fas fa-chevron-down" style="color:var(--text-muted);font-size:.7rem" id="userMenuArrow"></i>
+    </div>
+    <div id="userMenu" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+      <div class="nav-item" onclick="navigateTo('profile')" style="font-size:.82rem;padding:8px 10px"><i class="fas fa-user"></i><span class="nav-label" data-t="my_profile">Min profil</span></div>
+      <div class="nav-item" onclick="navigateTo('security')" style="font-size:.82rem;padding:8px 10px"><i class="fas fa-shield-alt"></i><span class="nav-label" data-t="security">Sakerhet</span></div>
+      <div class="nav-item" onclick="navigateTo('activity')" style="font-size:.82rem;padding:8px 10px"><i class="fas fa-history"></i><span class="nav-label" data-t="activity_log">Aktivitetslogg</span></div>
+    </div>
+  </div>
   <nav class="sidebar-nav">
     <div class="nav-section-title" data-t="nav_main">HUVUDMENY</div>
     <div class="nav-item active" onclick="navigateTo('dashboard')" data-page="dashboard">
@@ -271,8 +287,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
     </div>
   </nav>
   <div class="sidebar-footer">
-    <div class="sidebar-toggle" onclick="toggleLang()">
-      <i class="fas fa-globe"></i><span class="sidebar-footer-text" id="langToggleLabel">Svenska / English</span>
+    <div class="sidebar-toggle" onclick="cycleLang()" style="position:relative">
+      <i class="fas fa-globe"></i><span class="sidebar-footer-text" id="langToggleLabel">SV</span>
     </div>
     <div class="sidebar-toggle" onclick="toggleSidebar()">
       <i class="fas fa-angles-left" id="sidebarToggleIcon"></i><span class="sidebar-footer-text" data-t="collapse">Minimera</span>
@@ -397,6 +413,18 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
           <i class="fas fa-users" style="margin-right:6px;color:var(--accent-gold)"></i>Demografi
         </h4>
         <div id="pcDemographics"></div>
+      </div>
+
+      <!-- Ratsit.se Lookup Card -->
+      <div class="card" style="margin-bottom:12px" id="pcRatsitCard">
+        <h4 style="margin:0 0 12px 0;font-size:.85rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary)">
+          <i class="fas fa-external-link-alt" style="margin-right:6px;color:var(--accent-gold)"></i><span data-t="ratsit_lookup">Sokdata fran Ratsit.se</span>
+        </h4>
+        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px" data-t="ratsit_desc">Oppna Ratsit.se for att se vem som bor i detta postnummeromrade. Kopiera sedan uppgifterna nedan.</p>
+        <a id="pcRatsitLink" href="#" target="_blank" rel="noopener" class="btn btn-secondary" style="width:100%;justify-content:center;text-decoration:none">
+          <i class="fas fa-search"></i> <span data-t="open_ratsit">Oppna Ratsit.se for detta postnummer</span>
+        </a>
+        <div style="margin-top:8px;font-size:.72rem;color:var(--text-muted);text-align:center" data-t="ratsit_note">Ratsit.se oppnas i en ny flik. Kopiera info darifrn till formularet nedan.</div>
       </div>
 
       <!-- Add Voter Card -->
@@ -674,6 +702,109 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
   </div>
 </div>
 
+<!-- PROFILE PAGE -->
+<div class="page" id="page-profile">
+  <div class="page-header">
+    <h1 class="page-title"><i class="fas fa-user"></i> <span data-t="my_profile">Min profil</span></h1>
+  </div>
+  <div class="grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card">
+      <div class="card-title" data-t="profile_info">Profilinformation</div>
+      <div class="form-group"><label data-t="name">Namn</label><input type="text" id="profileName" placeholder="Ditt namn"></div>
+      <div class="form-group"><label data-t="lbl_email">E-post</label><input type="email" id="profileEmail" disabled style="opacity:.6"></div>
+      <div class="form-group"><label data-t="phone_number">Telefon</label><input type="text" id="profilePhone" placeholder="+46..."></div>
+      <div class="form-group"><label data-t="organization">Organisation</label><input type="text" id="profileOrg" placeholder="Parti / foretag"></div>
+      <button class="btn btn-primary btn-sm" onclick="saveProfile()"><i class="fas fa-save"></i> <span data-t="save">Spara</span></button>
+    </div>
+    <div class="card">
+      <div class="card-title" data-t="preferences">Installningar</div>
+      <div class="form-group">
+        <label data-t="language">Sprak</label>
+        <select id="profileLang" onchange="setLang(this.value)">
+          <option value="sv">Svenska</option>
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+          <option value="ur">Urdu</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label data-t="default_map_region">Standardregion</label>
+        <select id="profileRegion">
+          <option value="sweden">Sverige / Sweden</option>
+          <option value="india">India</option>
+          <option value="pakistan">Pakistan</option>
+          <option value="kashmir">Kashmir</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label data-t="timezone">Tidszon</label>
+        <select id="profileTimezone">
+          <option value="Europe/Stockholm">Stockholm (CET)</option>
+          <option value="Asia/Kolkata">India (IST)</option>
+          <option value="Asia/Karachi">Pakistan (PKT)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECURITY PAGE -->
+<div class="page" id="page-security">
+  <div class="page-header">
+    <h1 class="page-title"><i class="fas fa-shield-alt"></i> <span data-t="security">Sakerhet</span></h1>
+  </div>
+  <div class="grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card">
+      <div class="card-title" data-t="change_password">Byt losenord</div>
+      <div class="form-group"><label data-t="current_password">Nuvarande losenord</label><input type="password" id="secCurrentPw"></div>
+      <div class="form-group"><label data-t="new_password">Nytt losenord</label><input type="password" id="secNewPw"></div>
+      <div class="form-group"><label data-t="confirm_password">Bekrafta losenord</label><input type="password" id="secConfirmPw"></div>
+      <button class="btn btn-primary btn-sm" onclick="changePassword()"><i class="fas fa-key"></i> <span data-t="update_password">Uppdatera losenord</span></button>
+      <div id="secPwMsg" style="margin-top:8px;font-size:.82rem"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" data-t="two_factor_auth">Tvafaktorsautentisering</div>
+      <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:14px" data-t="2fa_desc">Lagg till ett extra lager av sakerhet till ditt konto.</p>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-secondary);border-radius:var(--radius-sm);margin-bottom:14px">
+        <i class="fas fa-shield-alt" style="font-size:1.5rem;color:var(--text-muted)"></i>
+        <div>
+          <div style="font-weight:600;font-size:.9rem" data-t="2fa_status_off">2FA ar inte aktiverat</div>
+          <div style="font-size:.78rem;color:var(--text-muted)" data-t="2fa_recommend">Rekommenderas for okad sakerhet</div>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="showAlert('2FA setup kommer snart','info')"><i class="fas fa-qrcode"></i> <span data-t="enable_2fa">Aktivera 2FA</span></button>
+    </div>
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-title" data-t="active_sessions">Aktiva sessioner</div>
+      <div id="sessionsList" style="font-size:.85rem;color:var(--text-secondary)">
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <i class="fas fa-desktop" style="color:var(--accent)"></i>
+          <div style="flex:1">
+            <div style="font-weight:600;color:var(--text-primary)" data-t="current_session">Nuvarande session</div>
+            <div style="font-size:.78rem;color:var(--text-muted)">Chrome / Windows — Stockholm, SE</div>
+          </div>
+          <span style="font-size:.72rem;background:var(--supporter);color:#000;padding:2px 8px;border-radius:10px;font-weight:600">Active</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIVITY LOG PAGE -->
+<div class="page" id="page-activity">
+  <div class="page-header">
+    <h1 class="page-title"><i class="fas fa-history"></i> <span data-t="activity_log">Aktivitetslogg</span></h1>
+  </div>
+  <div class="card">
+    <div id="activityList" style="font-size:.85rem">
+      <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
+        <i class="fas fa-sign-in-alt" style="color:var(--supporter);margin-top:3px"></i>
+        <div><span style="color:var(--text-primary);font-weight:500">Inloggning</span><div style="font-size:.78rem;color:var(--text-muted)">Just nu</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- ═══ MODALS ═══ -->
@@ -744,6 +875,9 @@ var _dashChart = null;
 var _resultsChart = null;
 
 // ═══ TRANSLATIONS ═══
+var LANGS = ['sv','en','hi','ur'];
+var LANG_LABELS = {sv:'SV',en:'EN',hi:'HI',ur:'UR'};
+var LANG_NAMES = {sv:'Svenska',en:'English',hi:'Hindi',ur:'Urdu'};
 var T = {
   sv: {
     nav_main:'HUVUDMENY',nav_dashboard:'Oversikt',nav_map:'Karta',nav_campaigns:'Kampanjer',
@@ -761,7 +895,17 @@ var T = {
     contact_history:'Kontakthistorik',no_contacts:'Inga kontakter annu',
     election_results:'Valresultat',vote_share:'Rostfordelning',seats:'Mandat',
     lbl_email:'E-post',lbl_password:'Losenord',lbl_login:'Logga in',
-    login_title:'Valintelligens',login_sub:'AI-driven valanalys for Sverige'
+    login_title:'Valintelligens',login_sub:'AI-driven valanalys for Sverige',
+    my_profile:'Min profil',security:'Sakerhet',activity_log:'Aktivitetslogg',
+    profile_info:'Profilinformation',phone_number:'Telefon',organization:'Organisation',
+    preferences:'Installningar',language:'Sprak',default_map_region:'Standardregion',timezone:'Tidszon',save:'Spara',
+    change_password:'Byt losenord',current_password:'Nuvarande losenord',new_password:'Nytt losenord',
+    confirm_password:'Bekrafta losenord',update_password:'Uppdatera losenord',
+    two_factor_auth:'Tvafaktorsautentisering','2fa_desc':'Lagg till ett extra lager av sakerhet till ditt konto.',
+    '2fa_status_off':'2FA ar inte aktiverat','2fa_recommend':'Rekommenderas for okad sakerhet',enable_2fa:'Aktivera 2FA',
+    active_sessions:'Aktiva sessioner',current_session:'Nuvarande session',
+    ratsit_lookup:'Sokdata fran Ratsit.se',ratsit_desc:'Oppna Ratsit.se for att se vem som bor i detta postnummeromrade.',
+    open_ratsit:'Oppna Ratsit.se for detta postnummer',ratsit_note:'Ratsit.se oppnas i en ny flik. Kopiera info darfran till formularet nedan.'
   },
   en: {
     nav_main:'MAIN MENU',nav_dashboard:'Dashboard',nav_map:'Map',nav_campaigns:'Campaigns',
@@ -779,7 +923,73 @@ var T = {
     contact_history:'Contact History',no_contacts:'No contacts yet',
     election_results:'Election Results',vote_share:'Vote Share',seats:'Seats',
     lbl_email:'Email',lbl_password:'Password',lbl_login:'Log in',
-    login_title:'Election Intelligence',login_sub:'AI-driven election analytics for Sweden'
+    login_title:'Election Intelligence',login_sub:'AI-driven election analytics',
+    my_profile:'My Profile',security:'Security',activity_log:'Activity Log',
+    profile_info:'Profile Information',phone_number:'Phone',organization:'Organization',
+    preferences:'Preferences',language:'Language',default_map_region:'Default Region',timezone:'Timezone',save:'Save',
+    change_password:'Change Password',current_password:'Current Password',new_password:'New Password',
+    confirm_password:'Confirm Password',update_password:'Update Password',
+    two_factor_auth:'Two-Factor Authentication','2fa_desc':'Add an extra layer of security to your account.',
+    '2fa_status_off':'2FA is not enabled','2fa_recommend':'Recommended for increased security',enable_2fa:'Enable 2FA',
+    active_sessions:'Active Sessions',current_session:'Current session',
+    ratsit_lookup:'Lookup data from Ratsit.se',ratsit_desc:'Open Ratsit.se to see who lives in this postcode area.',
+    open_ratsit:'Open Ratsit.se for this postcode',ratsit_note:'Ratsit.se opens in a new tab. Copy info from there into the form below.'
+  },
+  hi: {
+    nav_main:'MUKHYA MENU',nav_dashboard:'Dashboard',nav_map:'Naksha',nav_campaigns:'Abhiyan',
+    nav_voters:'Matdata',nav_ops:'KSHETRA KARYA',nav_fieldops:'Kshetra Sanchar',nav_results:'Parinaam',
+    nav_system:'PRANALI',nav_admin:'Prabandhan',collapse:'Chhota karein',logout:'Logout',
+    dashboard_title:'Dashboard',counties:'Rajya',municipalities:'Nagarpalika',campaigns:'Abhiyan',
+    voters:'Matdata',contacts:'Sampark',results_2022:'Chunav 2022 — Parinaam',
+    quick_actions:'Tvarit Karya',view_map:'Chunav Naksha dekhein',create_campaign:'Naya Abhiyan',
+    start_calling:'Calling shuru karein',browse_results:'Parinaam dekhein',election_map:'Chunav Naksha',
+    new_campaign:'Naya Abhiyan',campaign_name:'Abhiyan ka naam',election_type:'Chunav prakar',
+    election_date:'Chunav tithi',description:'Vivaran',voter_database:'Matdata Database',
+    import:'Import',name:'Naam',address:'Pata',priority:'Prathamikta',
+    field_ops:'Kshetra Sanchar',phone_banking:'Phone Calling',door_knocking:'Ghar-ghar Sampark',
+    talking_points:'Charcha ke vishay',log_outcome:'Parinaam darj karein',notes:'Tippaniyaan',
+    contact_history:'Sampark Itihas',no_contacts:'Koi sampark nahi',
+    election_results:'Chunav Parinaam',vote_share:'Vote Hissa',seats:'Seaten',
+    lbl_email:'Email',lbl_password:'Password',lbl_login:'Login',
+    login_title:'Chunav Intelligence',login_sub:'AI-sanchaalit chunav vishleshan',
+    my_profile:'Meri Profile',security:'Suraksha',activity_log:'Gatividhi Log',
+    profile_info:'Profile Jaankaari',phone_number:'Phone',organization:'Sangathan',
+    preferences:'Pasand',language:'Bhasha',default_map_region:'Default Kshetra',timezone:'Samay Kshetra',save:'Save karein',
+    change_password:'Password badlein',current_password:'Abhi ka password',new_password:'Naya password',
+    confirm_password:'Password ki pushti',update_password:'Password update karein',
+    two_factor_auth:'Do-Charan Pramanikaran','2fa_desc':'Apne khaate mein suraksha ki ek aur parath jodein.',
+    '2fa_status_off':'2FA saksham nahi hai','2fa_recommend':'Adhik suraksha ke liye anuganshit',enable_2fa:'2FA saksham karein',
+    active_sessions:'Sakriya Sessions',current_session:'Vartaman session',
+    ratsit_lookup:'Ratsit.se se data dekhein',ratsit_desc:'Is postcode kshetra mein kaun rehta hai, dekhne ke liye Ratsit.se kholein.',
+    open_ratsit:'Is postcode ke liye Ratsit.se kholein',ratsit_note:'Ratsit.se naye tab mein khulega. Vahaan se jaankaari neeche ke form mein dalein.'
+  },
+  ur: {
+    nav_main:'BUNIYADI MENU',nav_dashboard:'Dashboard',nav_map:'Naqsha',nav_campaigns:'Muhim',
+    nav_voters:'Voters',nav_ops:'MAYDANI KAAM',nav_fieldops:'Maydani Abhiyaan',nav_results:'Nataij',
+    nav_system:'NIZAM',nav_admin:'Intezaam',collapse:'Chhota karein',logout:'Logout',
+    dashboard_title:'Dashboard',counties:'Suubay',municipalities:'Baladiyaat',campaigns:'Muhim',
+    voters:'Voters',contacts:'Raabte',results_2022:'Intikhab 2022 — Nataij',
+    quick_actions:'Fori Iqdam',view_map:'Intikhaabi Naqsha dekhein',create_campaign:'Nayi Muhim',
+    start_calling:'Call shuru karein',browse_results:'Nataij dekhein',election_map:'Intikhaabi Naqsha',
+    new_campaign:'Nayi Muhim',campaign_name:'Muhim ka naam',election_type:'Intikhab ki qism',
+    election_date:'Intikhab ki tareekh',description:'Tafseelaat',voter_database:'Voters Database',
+    import:'Import',name:'Naam',address:'Pata',priority:'Ahmiyat',
+    field_ops:'Maydani Abhiyaan',phone_banking:'Phone Calling',door_knocking:'Ghar Ghar Muhim',
+    talking_points:'Guftagu ke nuqaat',log_outcome:'Natija darj karein',notes:'Notes',
+    contact_history:'Raabte ki Tareekh',no_contacts:'Koi raabta nahi',
+    election_results:'Intikhaabi Nataij',vote_share:'Vote ka hissa',seats:'Nashistein',
+    lbl_email:'Email',lbl_password:'Password',lbl_login:'Login',
+    login_title:'Intikhaabi Intelligence',login_sub:'AI par mabni intikhaabi tahleel',
+    my_profile:'Meri Profile',security:'Tahaffuz',activity_log:'Sargaarmi Log',
+    profile_info:'Profile ki Maaloomaat',phone_number:'Phone',organization:'Tanzeem',
+    preferences:'Pasand',language:'Zabaan',default_map_region:'Default Ilaaqa',timezone:'Waqt ka Ilaaqa',save:'Mehfooz karein',
+    change_password:'Password badlein',current_password:'Maujuda password',new_password:'Naya password',
+    confirm_password:'Password ki tasdeeq',update_password:'Password update karein',
+    two_factor_auth:'Do-Marhalaa Tasdeeq','2fa_desc':'Apne account mein tahaffuz ki aik aur teh shamil karein.',
+    '2fa_status_off':'2FA faal nahi hai','2fa_recommend':'Zyada tahaffuz ke liye tavsiya',enable_2fa:'2FA faal karein',
+    active_sessions:'Faal Sessions',current_session:'Maujuda session',
+    ratsit_lookup:'Ratsit.se se data dekhein',ratsit_desc:'Is postcode ilaaqe mein kaun rehta hai dekhne ke liye Ratsit.se kholein.',
+    open_ratsit:'Is postcode ke liye Ratsit.se kholein',ratsit_note:'Ratsit.se naye tab mein khulega. Wahaan se maaloomaat neeche form mein darj karein.'
   }
 };
 
@@ -800,6 +1010,11 @@ function applyTranslations(){
   if(lp) lp.textContent = t('lbl_password');
   var ll = document.getElementById('lbl_login');
   if(ll) ll.textContent = t('lbl_login');
+  // Update lang toggle label
+  var lt = document.getElementById('langToggleLabel');
+  if(lt) lt.textContent = LANG_LABELS[currentLang] || 'SV';
+  // Set RTL for Urdu
+  document.documentElement.dir = currentLang === 'ur' ? 'rtl' : 'ltr';
 }
 
 // ═══ API ═══
@@ -891,6 +1106,9 @@ function navigateTo(page){
     case 'fieldops': loadFieldOps(); break;
     case 'results': loadResults(); break;
     case 'admin': loadAdmin(); break;
+    case 'profile': loadProfile(); break;
+    case 'security': break;
+    case 'activity': loadActivityLog(); break;
   }
 }
 window.navigateTo = navigateTo;
@@ -903,12 +1121,30 @@ function toggleSidebar(){
 }
 window.toggleSidebar = toggleSidebar;
 
-function toggleLang(){
-  currentLang = currentLang === 'sv' ? 'en' : 'sv';
+function cycleLang(){
+  var idx = LANGS.indexOf(currentLang);
+  currentLang = LANGS[(idx + 1) % LANGS.length];
   localStorage.setItem('election_lang', currentLang);
   applyTranslations();
 }
-window.toggleLang = toggleLang;
+window.cycleLang = cycleLang;
+
+function setLang(lang){
+  if(LANGS.indexOf(lang) >= 0) currentLang = lang;
+  localStorage.setItem('election_lang', currentLang);
+  applyTranslations();
+  var sel = document.getElementById('profileLang');
+  if(sel) sel.value = currentLang;
+}
+window.setLang = setLang;
+
+function toggleUserMenu(){
+  var menu = document.getElementById('userMenu');
+  var arrow = document.getElementById('userMenuArrow');
+  if(menu.style.display === 'none'){ menu.style.display = 'block'; arrow.className = 'fas fa-chevron-up'; arrow.style.color = 'var(--text-muted)'; arrow.style.fontSize = '.7rem'; }
+  else { menu.style.display = 'none'; arrow.className = 'fas fa-chevron-down'; arrow.style.color = 'var(--text-muted)'; arrow.style.fontSize = '.7rem'; }
+}
+window.toggleUserMenu = toggleUserMenu;
 
 // ═══ PARTY COLORS ═══
 var PARTY_COLORS = {S:'#E8112D',M:'#1B49DD',SD:'#DDDD00',C:'#009933',V:'#DA291C',KD:'#005EA1',L:'#006AB3',MP:'#83CF39',OVR:'#888888'};
@@ -1124,6 +1360,15 @@ function renderPostcodeResults(data){
 
   // Demographics
   renderDemographics(data.demographics);
+
+  // Update Ratsit.se link
+  var ratsitLink = document.getElementById('pcRatsitLink');
+  if(ratsitLink && data.postcode){
+    ratsitLink.href = 'https://www.ratsit.se/sok/person?vem=' + data.postcode + '&m=0&k=0&r=0&er=0&b=0&eb=0&amin=16&amax=120&fon=1&page=1';
+  }
+
+  // Store current postcode for voter form
+  window._currentPostcodeData = data;
 
   // Voter count
   var vc = data.voters_in_area || 0;
@@ -1706,8 +1951,67 @@ async function initApp(){
   // Show/hide admin nav
   var adminItems = document.querySelectorAll('.nav-admin-only');
   adminItems.forEach(function(el){ el.style.display = (currentUser && currentUser.role === 'admin') ? '' : 'none'; });
+  // Setup user profile in sidebar
+  if(currentUser){
+    var profileEl = document.getElementById('userProfile');
+    if(profileEl) profileEl.style.display = 'block';
+    var nameEl = document.getElementById('userName');
+    if(nameEl) nameEl.textContent = currentUser.name || currentUser.email || 'User';
+    var roleEl = document.getElementById('userRole');
+    if(roleEl) roleEl.textContent = currentUser.role === 'admin' ? 'Administrator' : 'Analyst';
+    var avatarEl = document.getElementById('userAvatar');
+    if(avatarEl){
+      var n = (currentUser.name || currentUser.email || '?');
+      avatarEl.textContent = n.charAt(0).toUpperCase();
+    }
+  }
   loadDashboard();
 }
+
+// ═══ PROFILE & SECURITY ═══
+function loadProfile(){
+  if(!currentUser) return;
+  var n = document.getElementById('profileName'); if(n) n.value = currentUser.name || '';
+  var e = document.getElementById('profileEmail'); if(e) e.value = currentUser.email || '';
+  var l = document.getElementById('profileLang'); if(l) l.value = currentLang;
+}
+
+async function saveProfile(){
+  var name = document.getElementById('profileName').value;
+  var phone = document.getElementById('profilePhone').value;
+  var org = document.getElementById('profileOrg').value;
+  try {
+    await apiFetch('/auth/profile', {method:'PUT', body: JSON.stringify({name:name,phone:phone,organization:org})});
+    currentUser.name = name;
+    var nameEl = document.getElementById('userName');
+    if(nameEl) nameEl.textContent = name;
+    showAlert(t('save') + '!', 'success');
+  } catch(e){ showAlert(e.message, 'error'); }
+}
+window.saveProfile = saveProfile;
+
+async function changePassword(){
+  var cur = document.getElementById('secCurrentPw').value;
+  var nw = document.getElementById('secNewPw').value;
+  var conf = document.getElementById('secConfirmPw').value;
+  var msg = document.getElementById('secPwMsg');
+  if(nw !== conf){ msg.textContent = 'Passwords do not match'; msg.style.color = 'var(--opposition)'; return; }
+  if(nw.length < 6){ msg.textContent = 'Password must be at least 6 characters'; msg.style.color = 'var(--opposition)'; return; }
+  try {
+    await apiFetch('/auth/change-password', {method:'POST', body: JSON.stringify({current_password:cur,new_password:nw})});
+    msg.textContent = 'Password updated!'; msg.style.color = 'var(--supporter)';
+    document.getElementById('secCurrentPw').value = '';
+    document.getElementById('secNewPw').value = '';
+    document.getElementById('secConfirmPw').value = '';
+  } catch(e){ msg.textContent = e.message; msg.style.color = 'var(--opposition)'; }
+}
+window.changePassword = changePassword;
+
+function loadActivityLog(){
+  // Activity log is populated on page load with static data for now
+  // Future: fetch from /api/admin/activity-log
+}
+window.loadActivityLog = loadActivityLog;
 
 async function boot(){
   applyTranslations();
