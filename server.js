@@ -94,13 +94,9 @@ function handlePostcodeResult(mapping, res) {
   const countyCode = mapping.county_code;
   const munCode = mapping.municipality_code;
 
-  // Get county info
   const county = db.prepare('SELECT * FROM counties WHERE code = ?').get(countyCode);
-
-  // Get municipality info
   const municipality = munCode ? db.prepare('SELECT * FROM municipalities WHERE code = ?').get(munCode) : null;
 
-  // Get election results for this county (2022 + 2018)
   const results2022 = db.prepare(`
     SELECT er.*, p.name as party_name, p.color as party_color
     FROM election_results er
@@ -117,15 +113,38 @@ function handlePostcodeResult(mapping, res) {
     ORDER BY er.votes DESC
   `).all(countyCode);
 
-  // Get demographics
   const demographics = db.prepare(
     "SELECT * FROM area_demographics WHERE area_code = ? AND area_type = 'county' ORDER BY data_year DESC LIMIT 1"
   ).get(countyCode);
 
-  // Get neighboring postcodes in same county for context
   const nearbyPostcodes = db.prepare(
     'SELECT DISTINCT city FROM postcodes WHERE county_code = ? ORDER BY city LIMIT 10'
   ).all(countyCode);
+
+  // Auto-save to postcode_searches database
+  try {
+    const top2022 = results2022[0] || {};
+    const top2018 = results2018[0] || {};
+    const existing = db.prepare('SELECT id, search_count FROM postcode_searches WHERE postcode = ?').get(mapping.postcode);
+    if (existing) {
+      db.prepare('UPDATE postcode_searches SET search_count = search_count + 1, last_searched_at = datetime(\'now\') WHERE id = ?').run(existing.id);
+    } else {
+      const { v4: uuidv4 } = require('uuid');
+      db.prepare(`INSERT INTO postcode_searches (id, postcode, city, county_code, county_name, municipality_code, municipality_name,
+        population_county, population_municipality, top_party_2022, top_party_pct_2022, top_party_2018, top_party_pct_2018,
+        turnout_2022, demographics_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+      .run(uuidv4(), mapping.postcode, mapping.city, countyCode, county ? county.name : null,
+        munCode, municipality ? municipality.name : null,
+        county ? county.population : null, municipality ? municipality.population : null,
+        top2022.party_code || null, top2022.vote_percentage || null,
+        top2018.party_code || null, top2018.vote_percentage || null,
+        top2022.turnout_percentage || null,
+        demographics ? JSON.stringify(demographics) : null);
+    }
+  } catch (e) { /* ignore save errors */ }
+
+  // Count voters in this area
+  const voterCount = db.prepare('SELECT COUNT(*) as c FROM voters WHERE postcode = ?').get(mapping.postcode).c;
 
   res.json({
     postcode: mapping.postcode,
@@ -134,14 +153,130 @@ function handlePostcodeResult(mapping, res) {
     longitude: mapping.longitude,
     county: county ? { code: county.code, name: county.name, name_en: county.name_en, population: county.population } : null,
     municipality: municipality ? { code: municipality.code, name: municipality.name, population: municipality.population } : null,
-    election_results: {
-      '2022': results2022,
-      '2018': results2018
-    },
+    election_results: { '2022': results2022, '2018': results2018 },
     demographics: demographics || null,
-    nearby_cities: nearbyPostcodes.map(p => p.city)
+    nearby_cities: nearbyPostcodes.map(p => p.city),
+    voters_in_area: voterCount
   });
 }
+
+// API: List saved postcode searches
+app.get(BASE + '/api/postcode-searches', (req, res) => {
+  try {
+    const { county, sort } = req.query;
+    let where = '';
+    const params = [];
+    if (county) { where = 'WHERE county_code = ?'; params.push(county); }
+    const orderBy = sort === 'count' ? 'search_count DESC' : 'last_searched_at DESC';
+    const rows = db.prepare(`SELECT * FROM postcode_searches ${where} ORDER BY ${orderBy} LIMIT 200`).all(...params);
+    res.json({ data: rows, total: rows.length });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get saved searches' });
+  }
+});
+
+// API: Add voter manually (with postcode lookup)
+app.post(BASE + '/api/voters/add-manual', express.json(), (req, res) => {
+  try {
+    const { first_name, last_name, address, postcode, city, phone, email, age_group, gender, campaign_id, notes } = req.body;
+    if (!first_name && !last_name) return res.status(400).json({ error: 'Name is required' });
+
+    const { v4: uuidv4 } = require('uuid');
+
+    // Lookup postcode to get municipality/county
+    let municipalityId = null;
+    let districtId = null;
+    if (postcode) {
+      const pcMapping = db.prepare('SELECT * FROM postcodes WHERE postcode = ?').get(postcode.replace(/\s/g, ''));
+      if (pcMapping && pcMapping.municipality_code) {
+        const mun = db.prepare('SELECT id FROM municipalities WHERE code = ?').get(pcMapping.municipality_code);
+        if (mun) municipalityId = mun.id;
+      }
+    }
+
+    // Use first available campaign or null
+    let campId = campaign_id || null;
+    if (!campId) {
+      const firstCamp = db.prepare('SELECT id FROM campaigns LIMIT 1').get();
+      campId = firstCamp ? firstCamp.id : null;
+    }
+
+    // If no campaign exists, create a default one
+    if (!campId) {
+      campId = uuidv4();
+      db.prepare('INSERT INTO campaigns (id, name, election_type, status) VALUES (?, ?, ?, ?)').run(campId, 'Standard', 'riksdag', 'active');
+    }
+
+    const voterId = uuidv4();
+    const fullName = [first_name, last_name].filter(Boolean).join(' ');
+    db.prepare(`INSERT INTO voters (id, campaign_id, first_name, last_name, full_name, address, postcode, city, municipality_id, phone, email, age_group, gender, notes)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+    .run(voterId, campId, first_name || null, last_name || null, fullName,
+      address || null, postcode || null, city || null, municipalityId,
+      phone || null, email || null, age_group || null, gender || null, notes || null);
+
+    const voter = db.prepare('SELECT * FROM voters WHERE id = ?').get(voterId);
+    res.status(201).json({ data: voter });
+  } catch (err) {
+    console.error('Error adding voter:', err);
+    res.status(500).json({ error: 'Failed to add voter' });
+  }
+});
+
+// API: Bulk add voters from CSV/JSON (with postcode matching)
+app.post(BASE + '/api/voters/bulk-import', express.json({ limit: '50mb' }), (req, res) => {
+  try {
+    const { voters: voterList, campaign_id } = req.body;
+    if (!Array.isArray(voterList) || voterList.length === 0) return res.status(400).json({ error: 'voters array required' });
+
+    const { v4: uuidv4 } = require('uuid');
+
+    // Ensure campaign exists
+    let campId = campaign_id;
+    if (!campId) {
+      const firstCamp = db.prepare('SELECT id FROM campaigns LIMIT 1').get();
+      campId = firstCamp ? firstCamp.id : uuidv4();
+      if (!firstCamp) {
+        db.prepare('INSERT INTO campaigns (id, name, election_type, status) VALUES (?, ?, ?, ?)').run(campId, 'Import', 'riksdag', 'active');
+      }
+    }
+
+    const insert = db.prepare(`INSERT INTO voters (id, campaign_id, first_name, last_name, full_name, address, postcode, city, municipality_id, phone, email, age_group, gender, notes)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+
+    let imported = 0;
+    const importMany = db.transaction((list) => {
+      for (const v of list) {
+        try {
+          let munId = null;
+          if (v.postcode) {
+            const pc = db.prepare('SELECT municipality_code FROM postcodes WHERE postcode = ?').get(String(v.postcode).replace(/\s/g, ''));
+            if (pc && pc.municipality_code) {
+              const mun = db.prepare('SELECT id FROM municipalities WHERE code = ?').get(pc.municipality_code);
+              if (mun) munId = mun.id;
+            }
+          }
+          const fn = v.first_name || v.fornamn || '';
+          const ln = v.last_name || v.efternamn || '';
+          const full = v.full_name || v.namn || [fn, ln].filter(Boolean).join(' ');
+          insert.run(uuidv4(), campId, fn || null, ln || null, full,
+            v.address || v.adress || null, v.postcode || v.postnummer || null,
+            v.city || v.ort || null, munId,
+            v.phone || v.telefon || null, v.email || v.epost || null,
+            v.age_group || v.alder || null, v.gender || v.kon || null,
+            v.notes || v.anteckningar || null);
+          imported++;
+        } catch (e) { /* skip duplicates */ }
+      }
+    });
+    importMany(voterList);
+
+    res.status(201).json({ message: `Imported ${imported} of ${voterList.length} voters`, imported });
+  } catch (err) {
+    console.error('Bulk import error:', err);
+    res.status(500).json({ error: 'Failed to import voters' });
+  }
+});
 
 // API: AI Analysis of area
 app.post(BASE + '/api/ai/analyze-area', express.json(), async (req, res) => {

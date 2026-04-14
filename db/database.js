@@ -309,6 +309,35 @@ db.exec(`
   );
 
   -- ═══════════════════════════════════════════════════════════
+  -- POSTCODE SEARCH LOG
+  -- ═══════════════════════════════════════════════════════════
+  CREATE TABLE IF NOT EXISTS postcode_searches (
+    id TEXT PRIMARY KEY,
+    postcode TEXT NOT NULL,
+    city TEXT,
+    county_code TEXT,
+    county_name TEXT,
+    municipality_code TEXT,
+    municipality_name TEXT,
+    population_county INTEGER,
+    population_municipality INTEGER,
+    top_party_2022 TEXT,
+    top_party_pct_2022 REAL,
+    top_party_2018 TEXT,
+    top_party_pct_2018 REAL,
+    turnout_2022 REAL,
+    demographics_json TEXT,
+    search_count INTEGER DEFAULT 1,
+    first_searched_at TEXT DEFAULT (datetime('now')),
+    last_searched_at TEXT DEFAULT (datetime('now')),
+    searched_by TEXT,
+    UNIQUE(postcode)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_pc_search_county ON postcode_searches(county_code);
+  CREATE INDEX IF NOT EXISTS idx_pc_search_mun ON postcode_searches(municipality_code);
+
+  -- ═══════════════════════════════════════════════════════════
   -- SETTINGS
   -- ═══════════════════════════════════════════════════════════
   CREATE TABLE IF NOT EXISTS settings (

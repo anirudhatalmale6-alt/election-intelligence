@@ -399,6 +399,34 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
         <div id="pcDemographics"></div>
       </div>
 
+      <!-- Add Voter Card -->
+      <div class="card" style="margin-bottom:12px">
+        <h4 style="margin:0 0 12px 0;font-size:.85rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary)">
+          <i class="fas fa-user-plus" style="margin-right:6px;color:var(--accent-gold)"></i>Lagg till valjare i omradet
+          <span id="pcVoterCount" style="float:right;font-size:.78rem;color:var(--text-muted);font-weight:400"></span>
+        </h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <input type="text" id="pcVoterFirst" placeholder="Fornamn" style="padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:.85rem">
+          <input type="text" id="pcVoterLast" placeholder="Efternamn" style="padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:.85rem">
+        </div>
+        <input type="text" id="pcVoterAddress" placeholder="Adress" style="width:100%;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:.85rem;margin-bottom:8px;box-sizing:border-box">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <input type="text" id="pcVoterPhone" placeholder="Telefon" style="padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:.85rem">
+          <select id="pcVoterAge" style="padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:.85rem">
+            <option value="">Alder...</option>
+            <option value="18-29">18-29</option>
+            <option value="30-44">30-44</option>
+            <option value="45-64">45-64</option>
+            <option value="65+">65+</option>
+          </select>
+        </div>
+        <textarea id="pcVoterNotes" placeholder="Anteckningar (fran ratsit.se, doorknockning, etc.)" rows="2" style="width:100%;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:.85rem;resize:vertical;box-sizing:border-box;margin-bottom:8px"></textarea>
+        <button class="btn btn-primary btn-sm" onclick="addVoterFromPostcode()" style="width:100%">
+          <i class="fas fa-plus"></i> Lagg till valjare
+        </button>
+        <div id="pcVoterMsg" style="margin-top:6px;font-size:.82rem"></div>
+      </div>
+
       <!-- AI Analysis Card -->
       <div class="card" style="margin-bottom:12px">
         <h4 style="margin:0 0 12px 0;font-size:.85rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary)">
@@ -410,6 +438,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
         <button class="btn btn-secondary btn-sm" onclick="runAiAnalysis()" id="pcAiBtn" style="margin-top:10px">
           <i class="fas fa-brain"></i> Analysera med AI
         </button>
+      </div>
+
+      <!-- Saved Searches Info -->
+      <div style="text-align:center;padding:8px;font-size:.78rem;color:var(--text-muted)">
+        <i class="fas fa-database"></i> Data sparas automatiskt i databasen
       </div>
     </div>
   </div>
@@ -1033,6 +1066,10 @@ function renderPostcodeResults(data){
   // Demographics
   renderDemographics(data.demographics);
 
+  // Voter count
+  var vc = data.voters_in_area || 0;
+  document.getElementById('pcVoterCount').textContent = vc > 0 ? vc + ' valjare' : '';
+
   // Reset AI analysis
   document.getElementById('pcAiAnalysis').textContent = 'Klicka "Analysera" for AI-driven insikt om detta omrade.';
   document.getElementById('pcAiBtn').disabled = false;
@@ -1160,6 +1197,43 @@ async function runAiAnalysis(){
   btn.innerHTML = '<i class="fas fa-brain"></i> Analysera igen';
 }
 window.runAiAnalysis = runAiAnalysis;
+
+async function addVoterFromPostcode(){
+  if(!_pcData) return;
+  var first = document.getElementById('pcVoterFirst').value.trim();
+  var last = document.getElementById('pcVoterLast').value.trim();
+  if(!first && !last){ showAlert('Ange namn','warning'); return; }
+
+  var body = {
+    first_name: first,
+    last_name: last,
+    address: document.getElementById('pcVoterAddress').value.trim(),
+    postcode: _pcData.postcode,
+    city: _pcData.city,
+    phone: document.getElementById('pcVoterPhone').value.trim(),
+    age_group: document.getElementById('pcVoterAge').value,
+    notes: document.getElementById('pcVoterNotes').value.trim()
+  };
+
+  try {
+    var data = await apiFetch('/voters/add-manual', {method:'POST', body:JSON.stringify(body)});
+    document.getElementById('pcVoterMsg').innerHTML = '<span style="color:#2ecc71"><i class="fas fa-check"></i> '+first+' '+last+' tillagd!</span>';
+    // Clear form
+    document.getElementById('pcVoterFirst').value = '';
+    document.getElementById('pcVoterLast').value = '';
+    document.getElementById('pcVoterAddress').value = '';
+    document.getElementById('pcVoterPhone').value = '';
+    document.getElementById('pcVoterAge').value = '';
+    document.getElementById('pcVoterNotes').value = '';
+    // Update voter count
+    var count = parseInt(document.getElementById('pcVoterCount').textContent.replace(/\D/g,'')) || 0;
+    document.getElementById('pcVoterCount').textContent = (count+1) + ' valjare';
+    setTimeout(function(){ document.getElementById('pcVoterMsg').innerHTML = ''; }, 3000);
+  } catch(e){
+    document.getElementById('pcVoterMsg').innerHTML = '<span style="color:#e74c3c"><i class="fas fa-exclamation-triangle"></i> Fel: '+e.message+'</span>';
+  }
+}
+window.addVoterFromPostcode = addVoterFromPostcode;
 
 // ═══ CAMPAIGNS ═══
 async function loadCampaigns(){
