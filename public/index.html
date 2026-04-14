@@ -272,6 +272,67 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
 .btn-action-volunteer{color:var(--supporter);border-color:rgba(34,197,94,0.3)}
 .btn-action-volunteer:hover{background:rgba(34,197,94,0.12)}
 .voter-dequeued-indicator{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;background:rgba(34,197,94,0.12);color:var(--supporter);padding:2px 8px;border-radius:10px;border:1px solid rgba(34,197,94,0.25)}
+/* ═══ ALERTS BELL (Phase 3 Feature 1) ═══ */
+.alerts-bell-wrap{position:relative;display:inline-flex}
+.alerts-bell-btn{width:38px;height:38px;border-radius:var(--radius-sm);background:transparent;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:.95rem;cursor:pointer;transition:all .15s;position:relative}
+.alerts-bell-btn:hover{color:var(--text-primary);border-color:var(--border-light);background:rgba(255,255,255,0.04)}
+.alerts-bell-btn .bell-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font-size:.6rem;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--bg-primary);line-height:1}
+.alerts-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:360px;max-height:480px;overflow-y:auto;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);z-index:500;display:none}
+.alerts-dropdown.open{display:block;animation:fadeUp .2s ease}
+.alerts-dropdown-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-secondary)}
+.alerts-dropdown-header .refresh-btn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:.8rem;padding:4px 8px;border-radius:var(--radius-sm)}
+.alerts-dropdown-header .refresh-btn:hover{background:var(--accent-dim)}
+.alert-item{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:default}
+.alert-item:last-child{border-bottom:none}
+.alert-item-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.alert-item-district{font-size:.88rem;font-weight:600;color:var(--text-primary);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alert-severity-badge{padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+.alert-severity-badge.critical{background:rgba(232,17,45,0.2);color:var(--red);border:1px solid rgba(232,17,45,0.4)}
+.alert-severity-badge.warning{background:rgba(234,179,8,0.15);color:var(--soft-yes);border:1px solid rgba(234,179,8,0.3)}
+.alert-severity-badge.ok{background:rgba(34,197,94,0.12);color:var(--supporter);border:1px solid rgba(34,197,94,0.25)}
+.alert-item-detail{font-size:.77rem;color:var(--text-secondary);line-height:1.4}
+.alert-item-detail .lang-tag{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:8px;background:rgba(139,92,246,0.15);color:#a78bfa;font-weight:600;font-size:.72rem;margin-right:4px}
+.alerts-empty{padding:32px 20px;text-align:center;color:var(--text-muted);font-size:.85rem}
+.alerts-empty i{font-size:1.8rem;margin-bottom:10px;display:block;opacity:.4}
+.alerts-loading{padding:20px;text-align:center;color:var(--text-muted);font-size:.82rem}
+
+/* ═══ DEMOGRAPHIC CHANGES (Phase 3 Feature 2) ═══ */
+.demo-change-list{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.demo-change-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:border-color .15s,transform .15s}
+.demo-change-item:hover{border-color:var(--border-light);transform:translateX(2px)}
+.demo-change-item.growing{border-left:3px solid var(--supporter)}
+.demo-change-item.declining{border-left:3px solid var(--opposition)}
+.demo-change-item.shifting{border-left:3px solid var(--accent)}
+.demo-change-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.demo-change-name{font-weight:600;font-size:.9rem;flex:1;min-width:0}
+.demo-shift-score{width:42px;height:42px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;font-family:var(--mono);flex-shrink:0}
+.demo-change-metrics{display:flex;flex-wrap:wrap;gap:12px}
+.demo-metric{display:flex;align-items:center;gap:4px;font-size:.75rem;color:var(--text-secondary)}
+.demo-metric .metric-val{font-weight:600;font-family:var(--mono)}
+.demo-metric .arrow-up{color:var(--supporter)}
+.demo-metric .arrow-down{color:var(--opposition)}
+.demo-metric .arrow-neutral{color:var(--text-muted)}
+.demo-detail-panel{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-top:16px;display:none}
+.demo-detail-panel.open{display:block;animation:fadeUp .25s ease}
+.demo-prediction-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
+.demo-prediction-card:last-child{margin-bottom:0}
+.demo-prediction-factor{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:600;margin-bottom:4px}
+.demo-prediction-text{font-size:.85rem;color:var(--text-primary);line-height:1.5}
+.demo-party-lean{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.demo-party-tag{padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:700;background:var(--accent-dim);color:var(--accent)}
+
+/* ═══ SIMILAR DISTRICTS (Phase 3 Feature 3) ═══ */
+.similar-districts-wrap{padding:20px 24px;border-bottom:1px solid var(--border)}
+.similar-district-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:14px}
+.similar-district-card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;cursor:pointer;transition:all .15s;position:relative}
+.similar-district-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+.similar-score-ring{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:2px solid var(--border-light);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;font-family:var(--mono);color:var(--accent)}
+.similar-card-name{font-weight:600;font-size:.85rem;padding-right:40px;line-height:1.3;margin-bottom:4px}
+.similar-card-meta{font-size:.72rem;color:var(--text-muted);margin-bottom:6px}
+.similar-card-party{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;padding:2px 7px;border-radius:8px;background:var(--accent-dim);color:var(--accent);font-weight:600}
+.similar-card-match{font-size:.7rem;color:var(--text-muted);margin-top:4px}
+.similar-loading{padding:20px;text-align:center;color:var(--text-muted);font-size:.82rem}
+
 /* ═══ RESPONSIVE ═══ */
 @media(max-width:768px){
   .sidebar{width:var(--sidebar-collapsed)}
@@ -366,6 +427,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
     </div>
   </nav>
   <div class="sidebar-footer">
+    <!-- Alerts Bell -->
+    <div class="alerts-bell-wrap" id="alertsBellWrap" style="padding:0 4px;margin-bottom:4px">
+      <button class="alerts-bell-btn" onclick="toggleAlertsDropdown()" id="alertsBellBtn" title="Language Gap Alerts" style="width:100%;border-radius:var(--radius-sm);gap:10px;justify-content:flex-start;padding:8px 12px">
+        <i class="fas fa-bell"></i>
+        <span class="sidebar-footer-text" data-t="alerts_title">Sprak-varningar</span>
+        <span class="bell-badge" id="alertsBadge" style="display:none;position:relative;top:auto;right:auto;margin-left:auto">0</span>
+      </button>
+      <div class="alerts-dropdown" id="alertsDropdown">
+        <div class="alerts-dropdown-header">
+          <span data-t="alerts_title">Sprak-varningar</span>
+          <button class="refresh-btn" onclick="loadLanguageGapAlerts()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+        </div>
+        <div id="alertsDropdownBody"><div class="alerts-loading"><i class="fas fa-spinner fa-spin"></i></div></div>
+      </div>
+    </div>
     <div class="sidebar-toggle" onclick="cycleLang()" style="position:relative">
       <i class="fas fa-globe"></i><span class="sidebar-footer-text" id="langToggleLabel">SV</span>
     </div>
@@ -619,6 +695,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
         <div id="intelCampaignStats"></div>
       </div>
 
+      <!-- Similar Districts Section (Phase 3 Feature 3) -->
+      <div class="similar-districts-wrap" id="similarDistrictsSection" style="display:none">
+        <div class="intel-section-title"><i class="fas fa-copy"></i> <span data-t="similar_districts_title">Liknande distrikt</span></div>
+        <div style="font-size:.77rem;color:var(--text-muted);margin-bottom:12px" data-t="similar_districts_desc">Distrikt med likartad rostfordelning och demografi</div>
+        <div id="similarDistrictsCards" class="similar-district-cards">
+          <div class="similar-loading"><i class="fas fa-spinner fa-spin"></i></div>
+        </div>
+      </div>
+
       <!-- Quick Actions -->
       <div class="intel-actions">
         <button class="btn btn-primary btn-sm" onclick="intelActionAssignTeam()" data-t="assign_team">
@@ -629,6 +714,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
         </button>
         <button class="btn btn-secondary btn-sm" onclick="intelActionCall()" data-t="start_calling">
           <i class="fas fa-phone-alt"></i> Borja ringa
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="loadSimilarDistricts()" id="intelSimilarBtn" data-t="find_similar">
+          <i class="fas fa-copy"></i> <span data-t="find_similar">Hitta liknande</span>
         </button>
       </div>
     </div>
@@ -965,6 +1053,37 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
         <thead><tr><th>Parti</th><th>Roster</th><th>%</th><th data-t="seats">Mandat</th></tr></thead>
         <tbody id="resultsTableBody"></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Demographic Change Tracker (Phase 3 Feature 2) -->
+  <div style="margin-top:28px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <h2 style="font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:10px;margin:0">
+        <i class="fas fa-chart-line" style="color:var(--accent)"></i>
+        <span data-t="demo_changes_title">Demografiska forandringar</span>
+      </h2>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select id="demoChangesFilter" onchange="loadDemoChanges()" style="font-size:.82rem">
+          <option value="" data-t="all_area_types">Alla omradestyper</option>
+          <option value="county" data-t="counties">Lan</option>
+          <option value="municipality" data-t="municipalities">Kommuner</option>
+          <option value="district" data-t="nav_districts">Valdistrikt</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="loadDemoChanges()"><i class="fas fa-sync-alt"></i></button>
+      </div>
+    </div>
+    <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:14px" data-t="demo_changes_desc">Omraden sorterade efter hogst demografisk forflyttning. Grader av befolkningstillvaxt, migration och aldersforandringar.</div>
+    <div id="demoChangesContainer">
+      <div class="empty-state" style="padding:40px"><i class="fas fa-chart-line" style="font-size:2rem;opacity:.3"></i><p style="margin-top:10px" data-t="demo_changes_empty">Laddar demografisk data...</p></div>
+    </div>
+    <!-- Detail panel for a clicked area -->
+    <div id="demoDetailPanel" class="demo-detail-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="font-size:1rem;font-weight:700;margin:0" id="demoDetailTitle">-</h3>
+        <button class="btn btn-ghost btn-sm" onclick="closeDemoDetail()"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="demoDetailContent"></div>
     </div>
   </div>
 </div>
@@ -1350,7 +1469,26 @@ var T = {
     no_briefings:'Inga briefingar annu',briefing_for:'Briefing for',
     // Feature: Auto-deselect
     voter_signed_up:'Registrerad',voter_survey_done:'Enkaten klar',voter_volunteered:'Volontar',
-    action_logged:'Atgard loggad',voter_dequeued:'Valjare borttagen fran kon',quick_voter_actions:'Snabba atgarder'
+    action_logged:'Atgard loggad',voter_dequeued:'Valjare borttagen fran kon',quick_voter_actions:'Snabba atgarder',
+    // Phase 3: Alerts Bell
+    alerts_title:'Sprak-varningar',alerts_empty:'Inga aktiva sprakgap',alerts_critical:'Kritisk',alerts_warning:'Varning',
+    alert_callers_available:'ringare tillgangliga',alert_callers_none:'Inga ringare',alert_needs_lang:'Behovet av sprak',
+    alerts_refresh:'Uppdatera varningar',no_campaign_alerts:'Valj en kampanj for att se sprakvarningar',
+    // Phase 3: Demographic Change Tracker
+    demo_changes_title:'Demografiska forandringar',demo_changes_desc:'Omraden sorterade efter hogst demografisk forflyttning',
+    demo_changes_empty:'Ingen demografisk forandringsdata tillganglig',all_area_types:'Alla omradestyper',
+    demo_shift_score:'Forandringsindex',demo_pop_change:'Befolkningsforandring',demo_fb_change:'Utrikesfoddda forandring',
+    demo_age_change:'Aldersforandring',demo_growing:'Vaxande',demo_declining:'Minskande',demo_shifting:'Demografiskt skifte',
+    demo_predictions_title:'Valprognoser',demo_no_predictions:'Otillrackliga data for prognos',
+    demo_overall_stable:'Stabil demografisk profil',demo_overall_moderate:'Moderat demografisk forflyttning',
+    demo_overall_volatile:'Hog valvolatilitet',demo_recommendation:'Rekommendation',
+    demo_confidence_high:'Hog tillit',demo_confidence_medium:'Medelhog tillit',demo_confidence_low:'Lag tillit',
+    // Phase 3: Similar Districts
+    similar_districts_title:'Liknande distrikt',similar_districts_desc:'Distrikt med likartad rostfordelning och demografi',
+    find_similar:'Hitta liknande',similarity_pct:'Likhet',no_similar_found:'Inga liknande distrikt hittades',
+    similar_loading:'Hittar liknande distrikt...',key_match_foreign_born:'Demografisk matchning: utrikesfoddda',
+    key_match_education:'Demografisk matchning: utbildning',key_match_employment:'Demografisk matchning: sysselsattning',
+    key_match_age:'Demografisk matchning: alder',key_match_voting:'Rostmonstermatchning'
   },
   en: {
     nav_main:'MAIN MENU',nav_dashboard:'Dashboard',nav_map:'Map',nav_campaigns:'Campaigns',
@@ -1416,7 +1554,26 @@ var T = {
     briefing_generated:'Briefing generated!',briefing_error:'Could not generate briefing',recent_briefings:'Recent Briefings',
     no_briefings:'No briefings yet',briefing_for:'Briefing for',
     voter_signed_up:'Signed Up',voter_survey_done:'Survey Done',voter_volunteered:'Volunteered',
-    action_logged:'Action logged',voter_dequeued:'Voter removed from queue',quick_voter_actions:'Quick Voter Actions'
+    action_logged:'Action logged',voter_dequeued:'Voter removed from queue',quick_voter_actions:'Quick Voter Actions',
+    // Phase 3: Alerts Bell
+    alerts_title:'Language Gap Alerts',alerts_empty:'No active language gaps',alerts_critical:'Critical',alerts_warning:'Warning',
+    alert_callers_available:'callers available',alert_callers_none:'No callers',alert_needs_lang:'Language needed',
+    alerts_refresh:'Refresh alerts',no_campaign_alerts:'Select a campaign to see language gap alerts',
+    // Phase 3: Demographic Change Tracker
+    demo_changes_title:'Demographic Changes',demo_changes_desc:'Areas ranked by highest demographic shift score',
+    demo_changes_empty:'No demographic change data available',all_area_types:'All area types',
+    demo_shift_score:'Shift Score',demo_pop_change:'Population Change',demo_fb_change:'Foreign-Born Change',
+    demo_age_change:'Age Change',demo_growing:'Growing',demo_declining:'Declining',demo_shifting:'Major Shift',
+    demo_predictions_title:'Electoral Predictions',demo_no_predictions:'Insufficient data for prediction',
+    demo_overall_stable:'Stable demographic profile',demo_overall_moderate:'Moderate demographic shift',
+    demo_overall_volatile:'High electoral volatility',demo_recommendation:'Recommendation',
+    demo_confidence_high:'High confidence',demo_confidence_medium:'Medium confidence',demo_confidence_low:'Low confidence',
+    // Phase 3: Similar Districts
+    similar_districts_title:'Similar Districts',similar_districts_desc:'Districts with similar voting patterns and demographics',
+    find_similar:'Find Similar',similarity_pct:'Similarity',no_similar_found:'No similar districts found',
+    similar_loading:'Finding similar districts...',key_match_foreign_born:'Demographic match: foreign-born',
+    key_match_education:'Demographic match: education',key_match_employment:'Demographic match: employment',
+    key_match_age:'Demographic match: age',key_match_voting:'Voting pattern match'
   },
   hi: {
     nav_main:'MUKHYA MENU',nav_dashboard:'Dashboard',nav_map:'Naksha',nav_campaigns:'Abhiyan',
@@ -1482,7 +1639,24 @@ var T = {
     briefing_generated:'Briefing tayaar!',briefing_error:'Briefing nahi ban saki',recent_briefings:'Haaliya Briefings',
     no_briefings:'Abhi koi briefing nahi',briefing_for:'Briefing ke liye',
     voter_signed_up:'Registered',voter_survey_done:'Survey ho gayi',voter_volunteered:'Volunteer hua',
-    action_logged:'Karya darj',voter_dequeued:'Voter queue se hata diya',quick_voter_actions:'Tvarit Matdata Karya'
+    action_logged:'Karya darj',voter_dequeued:'Voter queue se hata diya',quick_voter_actions:'Tvarit Matdata Karya',
+    // Phase 3
+    alerts_title:'Bhaasha Antaar Sanket',alerts_empty:'Koi sakriya bhaasha antaar nahi',alerts_critical:'Ati Aavashyak',alerts_warning:'Chetavni',
+    alert_callers_available:'caller upalabdh',alert_callers_none:'Koi caller nahi',alert_needs_lang:'Bhaasha ki zaroorat',
+    alerts_refresh:'Sanchet taaza karein',no_campaign_alerts:'Bhaasha sanket dekhne ke liye abhiyan chunein',
+    demo_changes_title:'Jansankhya Parivartan',demo_changes_desc:'Sabse adhik jansankhya parivartan wale kshetra',
+    demo_changes_empty:'Koi jansankhya parivartan data nahi',all_area_types:'Sabhi kshetra prakar',
+    demo_shift_score:'Parivartan Ank',demo_pop_change:'Janasankhya Parivartan',demo_fb_change:'Videshi Janm Parivartan',
+    demo_age_change:'Aayu Parivartan',demo_growing:'Badh raha hai',demo_declining:'Ghat raha hai',demo_shifting:'Bada Badlav',
+    demo_predictions_title:'Chunav Bhavishyavani',demo_no_predictions:'Bhavishyavani ke liye anparyapt data',
+    demo_overall_stable:'Sthir jansankhya profile',demo_overall_moderate:'Madhyam jansankhya parivartan',
+    demo_overall_volatile:'Ucch chunav volatility',demo_recommendation:'Sujhav',
+    demo_confidence_high:'Uchi nishchittata',demo_confidence_medium:'Madhyam nishchittata',demo_confidence_low:'Nichi nishchittata',
+    similar_districts_title:'Saman Kshetra',similar_districts_desc:'Saman matdan aur janankiya wale kshetra',
+    find_similar:'Saman Khojein',similarity_pct:'Samanta',no_similar_found:'Koi saman kshetra nahi mila',
+    similar_loading:'Saman kshetra khoj raha hai...',key_match_foreign_born:'Jansankhya match: videshi janm',
+    key_match_education:'Jansankhya match: shiksha',key_match_employment:'Jansankhya match: rozgaar',
+    key_match_age:'Jansankhya match: aayu',key_match_voting:'Matdan pattern match'
   },
   ur: {
     nav_main:'BUNIYADI MENU',nav_dashboard:'Dashboard',nav_map:'Naqsha',nav_campaigns:'Muhim',
@@ -1548,7 +1722,24 @@ var T = {
     briefing_generated:'Briefing tayaar!',briefing_error:'Briefing nahi ban saki',recent_briefings:'Haaliya Briefings',
     no_briefings:'Abhi koi briefing nahi',briefing_for:'Briefing baraye',
     voter_signed_up:'Registered',voter_survey_done:'Survey Mukammal',voter_volunteered:'Volunteer',
-    action_logged:'Iqdam darj',voter_dequeued:'Voter queue se hata diya',quick_voter_actions:'Fori Voter Iqdam'
+    action_logged:'Iqdam darj',voter_dequeued:'Voter queue se hata diya',quick_voter_actions:'Fori Voter Iqdam',
+    // Phase 3
+    alerts_title:'Zabaan Farq Ittila',alerts_empty:'Koi faal zabaan farq nahi',alerts_critical:'Ahem',alerts_warning:'Khabardar',
+    alert_callers_available:'caller maujood',alert_callers_none:'Koi caller nahi',alert_needs_lang:'Zabaan ki zaroorat',
+    alerts_refresh:'Ittila taaza karein',no_campaign_alerts:'Zabaan ittila dekhne ke liye muhim chunein',
+    demo_changes_title:'Aabadi Tabdeeli',demo_changes_desc:'Zyada aabadi tabdeeli wale ilaaqe',
+    demo_changes_empty:'Koi aabadi tabdeeli data nahi',all_area_types:'Tamam ilaaqe ki qism',
+    demo_shift_score:'Tabdeeli Score',demo_pop_change:'Aabadi Tabdeeli',demo_fb_change:'Baahir Janm Tabdeeli',
+    demo_age_change:'Aayu Tabdeeli',demo_growing:'Barh raha hai',demo_declining:'Ghat raha hai',demo_shifting:'Badi Tabdeeli',
+    demo_predictions_title:'Intikhaabi Paeshgooi',demo_no_predictions:'Paeshgooi ke liye naakafi data',
+    demo_overall_stable:'Mustaqil aabadi profile',demo_overall_moderate:'Mutawasit aabadi tabdeeli',
+    demo_overall_volatile:'Zyada intikhaabi volatility',demo_recommendation:'Tavsiya',
+    demo_confidence_high:'Zyada yakeen',demo_confidence_medium:'Mutawasit yakeen',demo_confidence_low:'Kam yakeen',
+    similar_districts_title:'Milte Julte Halqe',similar_districts_desc:'Milte julte ray dahi aur aabadi wale halqe',
+    find_similar:'Milte Julte Dhundein',similarity_pct:'Mushabihat',no_similar_found:'Koi milta julta halqa nahi mila',
+    similar_loading:'Milte julte halqe dhundh raha hai...',key_match_foreign_born:'Aabadi match: baahir janm',
+    key_match_education:'Aabadi match: taleem',key_match_employment:'Aabadi match: rozgaar',
+    key_match_age:'Aabadi match: aayu',key_match_voting:'Ray dahi pattern match'
   }
 };
 
@@ -2554,6 +2745,9 @@ async function loadDistrictIntelligence(code){
   document.getElementById('districtResultsDropdown').classList.remove('open');
   document.getElementById('districtEmptyState').style.display = 'none';
   document.getElementById('districtIntelCard').style.display = 'none';
+  // Reset similar districts panel for new district
+  var simSection = document.getElementById('similarDistrictsSection');
+  if (simSection) simSection.style.display = 'none';
 
   try {
     var data = await apiFetch('/districts/'+encodeURIComponent(code)+'/intelligence');
@@ -3456,6 +3650,428 @@ async function logVoterAction(actionType){
   }
 }
 window.logVoterAction = logVoterAction;
+
+// ═══════════════════════════════════════════════════════════
+// PHASE 3 FEATURE 1: LANGUAGE GAP ALERTS BELL
+// ═══════════════════════════════════════════════════════════
+
+var _alertsOpen = false;
+var _alertsData = null;
+var _alertsCampaignId = null;
+
+function toggleAlertsDropdown() {
+  var dropdown = document.getElementById('alertsDropdown');
+  _alertsOpen = !_alertsOpen;
+  if (_alertsOpen) {
+    dropdown.classList.add('open');
+    // Try to get campaign from fieldops selector
+    var campSel = document.getElementById('fieldOpsCampaign');
+    var campId = campSel ? campSel.value : null;
+    if (campId && campId !== _alertsCampaignId) {
+      _alertsCampaignId = campId;
+      loadLanguageGapAlerts();
+    } else if (!campId) {
+      // Try to pick first campaign
+      apiFetch('/campaigns').then(function(d) {
+        var camps = d.campaigns || d || [];
+        if (camps.length > 0) {
+          _alertsCampaignId = camps[0].id;
+          loadLanguageGapAlerts();
+        } else {
+          renderAlertsDropdown(null);
+        }
+      }).catch(function() { renderAlertsDropdown(null); });
+    }
+    // Close on outside click
+    setTimeout(function() {
+      document.addEventListener('click', closeAlertsOnOutside, { once: true });
+    }, 50);
+  } else {
+    dropdown.classList.remove('open');
+  }
+}
+
+function closeAlertsOnOutside(e) {
+  var wrap = document.getElementById('alertsBellWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('alertsDropdown').classList.remove('open');
+    _alertsOpen = false;
+  }
+}
+
+async function loadLanguageGapAlerts() {
+  if (!_alertsCampaignId) {
+    // Try to get from campaign selector
+    var campSel = document.getElementById('fieldOpsCampaign');
+    _alertsCampaignId = campSel ? campSel.value : null;
+  }
+
+  var bodyEl = document.getElementById('alertsDropdownBody');
+  if (!bodyEl) return;
+
+  if (!_alertsCampaignId) {
+    bodyEl.innerHTML = '<div class="alerts-empty"><i class="fas fa-bell-slash"></i><div>' + escapeHtml(t('no_campaign_alerts')) + '</div></div>';
+    return;
+  }
+
+  bodyEl.innerHTML = '<div class="alerts-loading"><i class="fas fa-spinner fa-spin"></i> ' + escapeHtml(t('alerts_refresh')) + '</div>';
+
+  try {
+    var data = await apiFetch('/alerts/language-gaps/' + _alertsCampaignId);
+    _alertsData = data;
+    renderAlertsDropdown(data);
+
+    // Update badge
+    var badge = document.getElementById('alertsBadge');
+    var critCount = data.critical_count || 0;
+    if (badge) {
+      badge.textContent = critCount;
+      badge.style.display = critCount > 0 ? '' : 'none';
+    }
+  } catch (err) {
+    if (bodyEl) bodyEl.innerHTML = '<div class="alerts-empty"><i class="fas fa-exclamation-triangle"></i><div>' + escapeHtml(err.message) + '</div></div>';
+  }
+}
+
+function renderAlertsDropdown(data) {
+  var bodyEl = document.getElementById('alertsDropdownBody');
+  if (!bodyEl) return;
+
+  if (!data || !data.data || data.data.length === 0) {
+    bodyEl.innerHTML = '<div class="alerts-empty"><i class="fas fa-check-circle" style="color:var(--supporter)"></i><div>' + escapeHtml(t('alerts_empty')) + '</div></div>';
+    return;
+  }
+
+  var alerts = data.data;
+  var langNames = { ar: 'Arabic / Arabiska', so: 'Somali / Somaliska', ku: 'Kurdish / Kurdiska' };
+  var html = '';
+
+  alerts.forEach(function(alert) {
+    var langName = langNames[alert.estimated_language] || alert.estimated_language_name || alert.estimated_language;
+    var callerInfo = alert.available_callers === 0
+      ? '<span style="color:var(--opposition)">' + escapeHtml(t('alert_callers_none')) + '</span>'
+      : alert.available_callers + ' ' + escapeHtml(t('alert_callers_available'));
+
+    html += '<div class="alert-item">';
+    html += '<div class="alert-item-header">';
+    html += '<div class="alert-item-district">' + escapeHtml(alert.district_name) + '</div>';
+    html += '<span class="alert-severity-badge ' + escapeHtml(alert.gap_severity) + '">';
+    html += escapeHtml(alert.gap_severity === 'critical' ? t('alerts_critical') : t('alerts_warning'));
+    html += '</span>';
+    html += '</div>';
+    html += '<div class="alert-item-detail">';
+    html += '<span class="lang-tag"><i class="fas fa-language"></i> ' + escapeHtml(langName) + '</span>';
+    html += callerInfo;
+    if (alert.foreign_born_pct) {
+      html += ' &bull; ' + alert.foreign_born_pct.toFixed(0) + '% ' + escapeHtml(t('foreign_born').toLowerCase());
+    }
+    if (alert.municipality_name) {
+      html += '<div style="margin-top:2px;color:var(--text-muted)">' + escapeHtml(alert.municipality_name) + '</div>';
+    }
+    html += '</div></div>';
+  });
+
+  bodyEl.innerHTML = html;
+}
+
+window.toggleAlertsDropdown = toggleAlertsDropdown;
+window.loadLanguageGapAlerts = loadLanguageGapAlerts;
+
+// Auto-load alerts when campaign changes in fieldops
+var _origLoadNextVoter = window.loadNextVoter;
+document.addEventListener('change', function(e) {
+  if (e.target && e.target.id === 'fieldOpsCampaign') {
+    _alertsCampaignId = e.target.value;
+    if (_alertsCampaignId) {
+      loadLanguageGapAlerts();
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// PHASE 3 FEATURE 2: DEMOGRAPHIC CHANGE TRACKER
+// ═══════════════════════════════════════════════════════════
+
+var _demoChangesLoaded = false;
+
+async function loadDemoChanges() {
+  var container = document.getElementById('demoChangesContainer');
+  if (!container) return;
+
+  var areaType = document.getElementById('demoChangesFilter') ? document.getElementById('demoChangesFilter').value : '';
+
+  container.innerHTML = '<div class="empty-state" style="padding:40px"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i></div>';
+
+  try {
+    var url = '/demographics/changes?limit=30';
+    if (areaType) url += '&area_type=' + encodeURIComponent(areaType);
+    var data = await apiFetch(url);
+    _demoChangesLoaded = true;
+    renderDemoChanges(data.data || []);
+  } catch (err) {
+    container.innerHTML = '<div class="empty-state" style="padding:40px;color:var(--opposition)"><i class="fas fa-exclamation-triangle" style="font-size:1.5rem"></i><p style="margin-top:10px">' + escapeHtml(err.message) + '</p></div>';
+  }
+}
+
+function renderDemoChanges(items) {
+  var container = document.getElementById('demoChangesContainer');
+  if (!container) return;
+
+  if (!items || items.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="padding:40px"><i class="fas fa-chart-line" style="font-size:2rem;opacity:.3"></i><p style="margin-top:10px">' + escapeHtml(t('demo_changes_empty')) + '</p></div>';
+    return;
+  }
+
+  var html = '<div class="demo-change-list">';
+  items.forEach(function(item) {
+    var shiftScore = item.demographic_shift_score != null ? Math.round(item.demographic_shift_score) : null;
+    var popChangePct = item.pop_change_pct_calculated != null ? parseFloat(item.pop_change_pct_calculated) : null;
+    var fbChange = item.foreign_born_change != null ? parseFloat(item.foreign_born_change) : null;
+    var ageChange = item.age_change != null ? parseFloat(item.age_change) : null;
+
+    var itemClass = 'demo-change-item';
+    var scoreColor = 'var(--text-muted)';
+    var scoreBorder = 'var(--border)';
+    if (popChangePct != null) {
+      if (popChangePct > 0) { itemClass += ' growing'; scoreColor = 'var(--supporter)'; scoreBorder = 'var(--supporter)'; }
+      else if (popChangePct < 0) { itemClass += ' declining'; scoreColor = 'var(--opposition)'; scoreBorder = 'var(--opposition)'; }
+    }
+    if (shiftScore != null && shiftScore >= 35) { itemClass += ' shifting'; scoreColor = 'var(--accent)'; scoreBorder = 'var(--accent)'; }
+
+    html += '<div class="' + itemClass + '" onclick="showDemoDetail(\'' + escapeHtml(item.area_code) + '\',\'' + escapeHtml((item.area_name || item.area_code).replace(/'/g, '')) + '\')">';
+    html += '<div class="demo-change-header">';
+    html += '<div class="demo-change-name">' + escapeHtml(item.area_name || item.area_code);
+    html += '<span style="margin-left:8px;font-size:.72rem;color:var(--text-muted);font-weight:400">' + escapeHtml(item.area_type || '') + '</span>';
+    html += '</div>';
+    if (shiftScore != null) {
+      html += '<div class="demo-shift-score" style="color:' + scoreColor + ';border-color:' + scoreBorder + '">' + shiftScore + '</div>';
+    }
+    html += '</div>';
+    html += '<div class="demo-change-metrics">';
+    if (popChangePct != null) {
+      var arrow = popChangePct > 0 ? '<span class="arrow-up">&#x25B2;</span>' : '<span class="arrow-down">&#x25BC;</span>';
+      html += '<div class="demo-metric">' + arrow + ' <span class="metric-val">' + (popChangePct > 0 ? '+' : '') + popChangePct.toFixed(1) + '%</span> <span>' + escapeHtml(t('demo_pop_change')) + '</span></div>';
+    }
+    if (item.population) {
+      html += '<div class="demo-metric"><i class="fas fa-users" style="font-size:.7rem;color:var(--text-muted)"></i> <span class="metric-val">' + item.population.toLocaleString() + '</span></div>';
+    }
+    if (fbChange != null) {
+      var fbArrow = fbChange > 0 ? '<span class="arrow-up">&#x25B2;</span>' : '<span class="arrow-down">&#x25BC;</span>';
+      html += '<div class="demo-metric">' + fbArrow + ' <span class="metric-val">' + (fbChange > 0 ? '+' : '') + fbChange.toFixed(1) + 'pp</span> <span>' + escapeHtml(t('foreign_born')) + '</span></div>';
+    }
+    if (ageChange != null) {
+      var ageArrow = ageChange > 0 ? '<span class="arrow-up">&#x25B2;</span>' : '<span class="arrow-down">&#x25BC;</span>';
+      html += '<div class="demo-metric">' + ageArrow + ' <span class="metric-val">' + (ageChange > 0 ? '+' : '') + ageChange.toFixed(1) + '</span> <span>' + escapeHtml(t('median_age')) + '</span></div>';
+    }
+    html += '</div></div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+async function showDemoDetail(areaCode, areaName) {
+  var panel = document.getElementById('demoDetailPanel');
+  var titleEl = document.getElementById('demoDetailTitle');
+  var contentEl = document.getElementById('demoDetailContent');
+  if (!panel || !titleEl || !contentEl) return;
+
+  titleEl.textContent = areaName || areaCode;
+  contentEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted)"><i class="fas fa-spinner fa-spin"></i></div>';
+  panel.classList.add('open');
+  panel.style.display = '';
+
+  // Scroll to panel
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  try {
+    var changeData = await apiFetch('/demographics/changes/' + encodeURIComponent(areaCode));
+    var predictData = await apiFetch('/demographics/predict/' + encodeURIComponent(areaCode));
+    renderDemoDetail(contentEl, changeData, predictData);
+  } catch (err) {
+    contentEl.innerHTML = '<div style="color:var(--opposition);padding:10px">' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+function renderDemoDetail(el, changeData, predictData) {
+  var html = '';
+
+  // Changes section
+  if (changeData && changeData.changes) {
+    var changes = changeData.changes;
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px">';
+    if (changes.population) {
+      var pd = changes.population;
+      var pdColor = parseFloat(pd.change_pct) > 0 ? 'var(--supporter)' : 'var(--opposition)';
+      html += '<div class="card" style="padding:14px;text-align:center">';
+      html += '<div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">' + escapeHtml(t('demo_pop_change')) + '</div>';
+      html += '<div style="font-size:1.3rem;font-weight:700;font-family:var(--mono);color:' + pdColor + '">' + (pd.change_pct > 0 ? '+' : '') + pd.change_pct + '%</div>';
+      html += '<div style="font-size:.72rem;color:var(--text-muted)">' + pd.previous.toLocaleString() + ' \u2192 ' + pd.current.toLocaleString() + '</div></div>';
+    }
+    if (changes.foreign_born) {
+      var fb = changes.foreign_born;
+      var fbColor = parseFloat(fb.change) > 0 ? 'var(--accent)' : 'var(--text-secondary)';
+      html += '<div class="card" style="padding:14px;text-align:center">';
+      html += '<div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">' + escapeHtml(t('foreign_born')) + '</div>';
+      html += '<div style="font-size:1.3rem;font-weight:700;font-family:var(--mono);color:' + fbColor + '">' + (fb.change > 0 ? '+' : '') + fb.change + 'pp</div>';
+      html += '<div style="font-size:.72rem;color:var(--text-muted)">' + fb.previous + '% \u2192 ' + fb.current + '%</div></div>';
+    }
+    if (changes.median_age) {
+      var ag = changes.median_age;
+      html += '<div class="card" style="padding:14px;text-align:center">';
+      html += '<div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">' + escapeHtml(t('median_age')) + '</div>';
+      html += '<div style="font-size:1.3rem;font-weight:700;font-family:var(--mono);color:var(--text-primary)">' + (ag.change > 0 ? '+' : '') + ag.change + ' ' + escapeHtml(t('years')) + '</div>';
+      html += '<div style="font-size:.72rem;color:var(--text-muted)">' + ag.previous + ' \u2192 ' + ag.current + '</div></div>';
+    }
+    html += '</div>';
+  }
+
+  // Predictions section
+  if (predictData) {
+    var outlook = predictData.overall_outlook || 'stable';
+    var outlookLabels = { stable: t('demo_overall_stable'), moderate_shift: t('demo_overall_moderate'), high_volatility: t('demo_overall_volatile') };
+    var outlookColors = { stable: 'var(--supporter)', moderate_shift: 'var(--soft-yes)', high_volatility: 'var(--opposition)' };
+    html += '<div style="margin-bottom:14px">';
+    html += '<div style="font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:600;margin-bottom:8px">' + escapeHtml(t('demo_predictions_title')) + '</div>';
+    html += '<div style="padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-secondary);font-size:.85rem;color:' + (outlookColors[outlook] || 'var(--text-primary)') + ';font-weight:600;margin-bottom:12px">';
+    html += '<i class="fas fa-chart-line" style="margin-right:8px"></i>' + escapeHtml(outlookLabels[outlook] || outlook);
+    html += '</div>';
+
+    var predictions = predictData.predictions || [];
+    if (predictions.length === 0) {
+      html += '<div style="font-size:.82rem;color:var(--text-muted)">' + escapeHtml(t('demo_no_predictions')) + '</div>';
+    } else {
+      predictions.forEach(function(pred) {
+        var confColor = pred.confidence === 'high' ? 'var(--supporter)' : pred.confidence === 'medium' ? 'var(--soft-yes)' : 'var(--text-muted)';
+        var confLabel = { high: t('demo_confidence_high'), medium: t('demo_confidence_medium'), low: t('demo_confidence_low') }[pred.confidence] || pred.confidence;
+        html += '<div class="demo-prediction-card">';
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">';
+        html += '<div class="demo-prediction-factor">' + escapeHtml(pred.factor) + '</div>';
+        html += '<span style="font-size:.65rem;color:' + confColor + ';font-weight:600;text-transform:uppercase">' + escapeHtml(confLabel) + '</span>';
+        html += '</div>';
+        html += '<div class="demo-prediction-text">' + escapeHtml(pred.implication) + '</div>';
+        if (pred.party_lean && pred.party_lean.length > 0) {
+          html += '<div class="demo-party-lean">';
+          pred.party_lean.forEach(function(p) { html += '<span class="demo-party-tag">' + escapeHtml(p) + '</span>'; });
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+    }
+
+    if (predictData.recommendation) {
+      html += '<div style="margin-top:12px;padding:12px 14px;border-radius:var(--radius-sm);background:var(--accent-dim);border:1px solid var(--accent-glow);font-size:.82rem;color:var(--text-primary)">';
+      html += '<i class="fas fa-lightbulb" style="color:var(--accent);margin-right:8px"></i>' + escapeHtml(predictData.recommendation);
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  el.innerHTML = html || '<div style="color:var(--text-muted)">' + escapeHtml(t('demo_no_predictions')) + '</div>';
+}
+
+function closeDemoDetail() {
+  var panel = document.getElementById('demoDetailPanel');
+  if (panel) { panel.classList.remove('open'); panel.style.display = 'none'; }
+}
+
+window.loadDemoChanges = loadDemoChanges;
+window.showDemoDetail = showDemoDetail;
+window.closeDemoDetail = closeDemoDetail;
+
+// ═══════════════════════════════════════════════════════════
+// PHASE 3 FEATURE 3: AREA SIMILARITY ENGINE
+// ═══════════════════════════════════════════════════════════
+
+async function loadSimilarDistricts() {
+  var intel = window._currentIntelDistrict;
+  if (!intel || !intel.district) { showAlert(t('no_results_found'), 'warning'); return; }
+
+  var areaCode = intel.district.code;
+  var section = document.getElementById('similarDistrictsSection');
+  var cardsEl = document.getElementById('similarDistrictsCards');
+  var btn = document.getElementById('intelSimilarBtn');
+
+  if (section) section.style.display = '';
+  if (cardsEl) cardsEl.innerHTML = '<div class="similar-loading"><i class="fas fa-spinner fa-spin"></i> ' + escapeHtml(t('similar_loading')) + '</div>';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
+
+  try {
+    var data = await apiFetch('/areas/similar/' + encodeURIComponent(areaCode) + '?limit=8');
+    renderSimilarDistricts(data.similar_areas || []);
+  } catch (err) {
+    if (cardsEl) cardsEl.innerHTML = '<div style="padding:16px;color:var(--opposition);font-size:.82rem">' + escapeHtml(err.message) + '</div>';
+  }
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-copy"></i> <span data-t="find_similar">' + escapeHtml(t('find_similar')) + '</span>'; }
+}
+
+function renderSimilarDistricts(areas) {
+  var cardsEl = document.getElementById('similarDistrictsCards');
+  if (!cardsEl) return;
+
+  if (!areas || areas.length === 0) {
+    cardsEl.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:.82rem">' + escapeHtml(t('no_similar_found')) + '</div>';
+    return;
+  }
+
+  var matchLabels = {
+    foreign_born: t('key_match_foreign_born'),
+    education: t('key_match_education'),
+    employment: t('key_match_employment'),
+    age: t('key_match_age'),
+    voting_pattern: t('key_match_voting')
+  };
+
+  var html = '';
+  areas.forEach(function(area) {
+    var score = area.similarity_score || 0;
+    var scoreColor = score >= 80 ? 'var(--supporter)' : score >= 60 ? 'var(--accent)' : 'var(--text-muted)';
+    var matchLabel = matchLabels[area.key_demographic_match] || area.key_demographic_match || '';
+
+    html += '<div class="similar-district-card" onclick="navigateToSimilarDistrict(\'' + escapeHtml(area.area_code) + '\')">';
+    html += '<div class="similar-score-ring" style="color:' + scoreColor + ';border-color:' + scoreColor + '">' + score + '%</div>';
+    html += '<div class="similar-card-name">' + escapeHtml(area.area_name) + '</div>';
+    if (area.municipality_name || area.county_name) {
+      html += '<div class="similar-card-meta">' + escapeHtml(area.municipality_name || area.county_name || '') + '</div>';
+    }
+    if (area.top_party) {
+      html += '<span class="similar-card-party"><i class="fas fa-vote-yea" style="font-size:.65rem"></i> ' + escapeHtml(area.top_party);
+      if (area.top_party_pct) html += ' ' + area.top_party_pct + '%';
+      html += '</span>';
+    }
+    if (matchLabel) {
+      html += '<div class="similar-card-match"><i class="fas fa-check" style="font-size:.65rem;margin-right:3px;color:var(--text-muted)"></i>' + escapeHtml(matchLabel) + '</div>';
+    }
+    html += '</div>';
+  });
+
+  cardsEl.innerHTML = html;
+}
+
+function navigateToSimilarDistrict(areaCode) {
+  // Navigate to districts page and load intelligence for this area
+  navigateTo('districts');
+  // Short delay to let page render
+  setTimeout(function() {
+    var searchInput = document.getElementById('districtSearchInput');
+    if (searchInput) {
+      searchInput.value = areaCode;
+      loadDistrictIntelligence(areaCode);
+    }
+  }, 100);
+}
+
+window.loadSimilarDistricts = loadSimilarDistricts;
+window.navigateToSimilarDistrict = navigateToSimilarDistrict;
+
+// Load demo changes when Results page is navigated to
+var _origNavigateTo = window.navigateTo;
+window.navigateTo = function(page) {
+  if (_origNavigateTo) _origNavigateTo(page);
+  if (page === 'results' && !_demoChangesLoaded) {
+    setTimeout(loadDemoChanges, 200);
+  }
+};
 
 // ═══ UTILITIES ═══
 function escapeHtml(s){

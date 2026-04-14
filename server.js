@@ -1353,6 +1353,531 @@ app.post(BASE + '/api/call-queue/complete-v2', (req, res) => {
   res.json({ message: 'Use /api/call-queue/complete' });
 });
 
+// ═══════════════════════════════════════════════════════════
+// PHASE 3 FEATURE 1: LANGUAGE GAP ALERTS
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/alerts/language-gaps/:campaignId
+// Analyses each district in campaign, cross-refs demographics with available callers
+app.get(BASE + '/api/alerts/language-gaps/:campaignId', function(req, res) {
+  try {
+    var campaignId = req.params.campaignId;
+
+    // Get all districts that have voters in this campaign
+    var districts = db.prepare(`
+      SELECT DISTINCT vd.id, vd.code, vd.name, vd.municipality_id,
+             m.name as municipality_name, m.code as municipality_code,
+             c.name as county_name, c.code as county_code
+      FROM voters v
+      JOIN voting_districts vd ON vd.id = v.district_id
+      LEFT JOIN municipalities m ON m.id = vd.municipality_id
+      LEFT JOIN counties c ON c.id = m.county_id
+      WHERE v.campaign_id = ? AND v.district_id IS NOT NULL
+    `).all(campaignId);
+
+    // Also include districts from area_assignments for the campaign
+    var assignedDistricts = db.prepare(`
+      SELECT DISTINCT vd.id, vd.code, vd.name, vd.municipality_id,
+             m.name as municipality_name, m.code as municipality_code,
+             c.name as county_name, c.code as county_code
+      FROM area_assignments aa
+      JOIN voting_districts vd ON vd.id = aa.district_id
+      LEFT JOIN municipalities m ON m.id = vd.municipality_id
+      LEFT JOIN counties c ON c.id = m.county_id
+      WHERE aa.campaign_id = ? AND aa.district_id IS NOT NULL
+    `).all(campaignId);
+
+    // Merge district lists, dedupe by id
+    var districtMap = {};
+    districts.forEach(function(d) { districtMap[d.id] = d; });
+    assignedDistricts.forEach(function(d) { districtMap[d.id] = d; });
+    var allDistricts = Object.values(districtMap);
+
+    // Get all active callers with their languages
+    var callers = db.prepare(`
+      SELECT id, name, languages FROM users WHERE is_active = 1 AND languages IS NOT NULL AND languages != ''
+    `).all();
+
+    // Build caller language index: language -> array of caller names
+    var langCallers = {};
+    callers.forEach(function(caller) {
+      var langs = [];
+      try { langs = JSON.parse(caller.languages); } catch(e) {}
+      if (!Array.isArray(langs)) langs = [];
+      langs.forEach(function(lang) {
+        lang = lang.toLowerCase();
+        if (!langCallers[lang]) langCallers[lang] = [];
+        langCallers[lang].push(caller.name || caller.id);
+      });
+    });
+
+    var alerts = [];
+
+    allDistricts.forEach(function(district) {
+      // Fetch demographics — try district, then municipality, then county
+      var demo = db.prepare(
+        "SELECT * FROM area_demographics WHERE area_code = ? AND area_type = 'district' ORDER BY data_year DESC LIMIT 1"
+      ).get(district.code);
+      if (!demo && district.municipality_code) {
+        demo = db.prepare(
+          "SELECT * FROM area_demographics WHERE area_code = ? AND area_type = 'municipality' ORDER BY data_year DESC LIMIT 1"
+        ).get(district.municipality_code);
+      }
+      if (!demo && district.county_code) {
+        demo = db.prepare(
+          "SELECT * FROM area_demographics WHERE area_code = ? AND area_type = 'county' ORDER BY data_year DESC LIMIT 1"
+        ).get(district.county_code);
+      }
+
+      var foreignBornPct = demo ? (demo.foreign_born_pct || 0) : 0;
+
+      // Only flag if foreign-born % is high enough to warrant language callers
+      if (foreignBornPct < 15) return;
+
+      // Determine likely language(s) needed based on threshold
+      // Sweden's immigrant populations: Arabic, Somali, Kurdish are most common
+      // We flag all three for any district with high foreign-born %
+      var neededLanguages = ['ar', 'so', 'ku'];
+
+      neededLanguages.forEach(function(lang) {
+        var langNames = { ar: 'Arabic', so: 'Somali', ku: 'Kurdish' };
+        var available = langCallers[lang] || [];
+        var count = available.length;
+        var severity;
+        if (foreignBornPct > 30 && count === 0) {
+          severity = 'critical';
+        } else if (foreignBornPct > 20 && count < 2) {
+          severity = 'warning';
+        } else {
+          severity = 'ok';
+        }
+
+        if (severity !== 'ok') {
+          alerts.push({
+            district_code: district.code,
+            district_name: district.name,
+            municipality_name: district.municipality_name,
+            county_name: district.county_name,
+            foreign_born_pct: foreignBornPct,
+            estimated_language: lang,
+            estimated_language_name: langNames[lang],
+            available_callers: count,
+            caller_names: available.slice(0, 5),
+            gap_severity: severity
+          });
+        }
+      });
+    });
+
+    // Sort: critical first, then warning; dedupe by district+lang
+    alerts.sort(function(a, b) {
+      var order = { critical: 0, warning: 1, ok: 2 };
+      return (order[a.gap_severity] || 2) - (order[b.gap_severity] || 2);
+    });
+
+    var criticalCount = alerts.filter(function(a) { return a.gap_severity === 'critical'; }).length;
+
+    res.json({ data: alerts, total: alerts.length, critical_count: criticalCount });
+  } catch (err) {
+    console.error('Language gaps error:', err);
+    res.status(500).json({ error: 'Failed to analyse language gaps: ' + err.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// PHASE 3 FEATURE 2: DEMOGRAPHIC CHANGE TRACKER
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/demographics/changes - all areas sorted by shift score
+app.get(BASE + '/api/demographics/changes', function(req, res) {
+  try {
+    var limit = parseInt(req.query.limit) || 50;
+    var areaType = req.query.area_type || null;
+
+    var where = 'WHERE demographic_shift_score IS NOT NULL';
+    var params = [];
+    if (areaType) {
+      where += ' AND area_type = ?';
+      params.push(areaType);
+    }
+
+    var rows = db.prepare(`
+      SELECT ad.*,
+             COALESCE(vd.name, m.name, c.name) as area_name
+      FROM area_demographics ad
+      LEFT JOIN voting_districts vd ON vd.code = ad.area_code AND ad.area_type = 'district'
+      LEFT JOIN municipalities m ON m.code = ad.area_code AND ad.area_type = 'municipality'
+      LEFT JOIN counties c ON c.code = ad.area_code AND ad.area_type = 'county'
+      ${where}
+      ORDER BY ad.demographic_shift_score DESC
+      LIMIT ?
+    `).all(...params, limit);
+
+    // Annotate with change indicators
+    var annotated = rows.map(function(row) {
+      var popChange = null;
+      var fbChange = null;
+      var ageChange = null;
+      if (row.previous_population && row.population) {
+        popChange = ((row.population - row.previous_population) / row.previous_population * 100).toFixed(1);
+      }
+      if (row.previous_foreign_born_pct != null && row.foreign_born_pct != null) {
+        fbChange = (row.foreign_born_pct - row.previous_foreign_born_pct).toFixed(1);
+      }
+      if (row.previous_median_age != null && row.median_age != null) {
+        ageChange = (row.median_age - row.previous_median_age).toFixed(1);
+      }
+      return Object.assign({}, row, {
+        pop_change_pct_calculated: popChange,
+        foreign_born_change: fbChange,
+        age_change: ageChange
+      });
+    });
+
+    res.json({ data: annotated, total: annotated.length });
+  } catch (err) {
+    console.error('Demographic changes error:', err);
+    res.status(500).json({ error: 'Failed to get demographic changes: ' + err.message });
+  }
+});
+
+// GET /api/demographics/changes/:areaCode - detailed change for one area
+app.get(BASE + '/api/demographics/changes/:areaCode', function(req, res) {
+  try {
+    var areaCode = req.params.areaCode;
+
+    var rows = db.prepare(
+      'SELECT * FROM area_demographics WHERE area_code = ? ORDER BY data_year DESC LIMIT 5'
+    ).all(areaCode);
+
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ error: 'No demographic data found for this area' });
+    }
+
+    var current = rows[0];
+    var changes = {};
+
+    if (current.previous_population && current.population) {
+      changes.population = {
+        current: current.population,
+        previous: current.previous_population,
+        change_pct: ((current.population - current.previous_population) / current.previous_population * 100).toFixed(1),
+        direction: current.population > current.previous_population ? 'growing' : 'declining'
+      };
+    }
+    if (current.previous_foreign_born_pct != null && current.foreign_born_pct != null) {
+      changes.foreign_born = {
+        current: current.foreign_born_pct,
+        previous: current.previous_foreign_born_pct,
+        change: (current.foreign_born_pct - current.previous_foreign_born_pct).toFixed(1),
+        direction: current.foreign_born_pct > current.previous_foreign_born_pct ? 'increasing' : 'decreasing'
+      };
+    }
+    if (current.previous_median_age != null && current.median_age != null) {
+      changes.median_age = {
+        current: current.median_age,
+        previous: current.previous_median_age,
+        change: (current.median_age - current.previous_median_age).toFixed(1),
+        direction: current.median_age > current.previous_median_age ? 'aging' : 'rejuvenating'
+      };
+    }
+
+    // Historical series from all stored years
+    var history = rows.map(function(r) {
+      return {
+        data_year: r.data_year,
+        population: r.population,
+        foreign_born_pct: r.foreign_born_pct,
+        median_age: r.median_age,
+        median_income: r.median_income,
+        unemployment_pct: r.unemployment_pct,
+        higher_education_pct: r.higher_education_pct
+      };
+    });
+
+    res.json({
+      area_code: areaCode,
+      current: current,
+      changes: changes,
+      shift_score: current.demographic_shift_score,
+      history: history
+    });
+  } catch (err) {
+    console.error('Demographic change detail error:', err);
+    res.status(500).json({ error: 'Failed to get area change data: ' + err.message });
+  }
+});
+
+// GET /api/demographics/predict/:areaCode - electoral implications prediction
+app.get(BASE + '/api/demographics/predict/:areaCode', function(req, res) {
+  try {
+    var areaCode = req.params.areaCode;
+    var demo = db.prepare(
+      'SELECT * FROM area_demographics WHERE area_code = ? ORDER BY data_year DESC LIMIT 1'
+    ).get(areaCode);
+
+    if (!demo) return res.status(404).json({ error: 'No demographic data found' });
+
+    var predictions = [];
+    var signals = [];
+
+    // Younger population: tends left/green
+    if (demo.median_age != null && demo.previous_median_age != null) {
+      var ageDelta = demo.median_age - demo.previous_median_age;
+      if (ageDelta < -1.0) {
+        predictions.push({ factor: 'age', direction: 'younger', implication: 'Younger demographic shift suggests increased support for progressive and green parties (MP, V)', confidence: 'medium', party_lean: ['MP', 'V', 'S'] });
+        signals.push('population_rejuvenating');
+      } else if (ageDelta > 1.5) {
+        predictions.push({ factor: 'age', direction: 'older', implication: 'Aging population suggests more conservative electorate; stronger SD and M support likely', confidence: 'medium', party_lean: ['M', 'SD', 'KD'] });
+        signals.push('population_aging');
+      }
+    }
+
+    // Higher education growth: tends left-liberal
+    if (demo.higher_education_pct != null) {
+      if (demo.higher_education_pct > 40) {
+        predictions.push({ factor: 'education', direction: 'high', implication: 'High education area correlates strongly with liberal/progressive voting; L, MP, S competitive', confidence: 'high', party_lean: ['L', 'MP', 'S', 'C'] });
+        signals.push('high_education');
+      } else if (demo.higher_education_pct < 20) {
+        predictions.push({ factor: 'education', direction: 'low', implication: 'Lower education correlates with populist right support (SD) and traditional left (S)', confidence: 'medium', party_lean: ['SD', 'S'] });
+        signals.push('low_education');
+      }
+    }
+
+    // Rising foreign-born %: complex — may mobilise both SD and left
+    if (demo.foreign_born_pct != null && demo.previous_foreign_born_pct != null) {
+      var fbDelta = demo.foreign_born_pct - demo.previous_foreign_born_pct;
+      if (fbDelta > 2) {
+        predictions.push({ factor: 'foreign_born', direction: 'increasing', implication: 'Increasing foreign-born population may boost S and V in immigrant communities, while also energising SD base elsewhere', confidence: 'medium', party_lean: ['S', 'V', 'SD'] });
+        signals.push('increasing_immigration');
+      }
+    }
+
+    // High unemployment: left / populist lean
+    if (demo.unemployment_pct != null) {
+      if (demo.unemployment_pct > 10) {
+        predictions.push({ factor: 'unemployment', direction: 'high', implication: 'High unemployment favours S welfare messaging and SD anti-immigration framing; V competitive', confidence: 'high', party_lean: ['S', 'SD', 'V'] });
+        signals.push('high_unemployment');
+      } else if (demo.unemployment_pct < 4) {
+        predictions.push({ factor: 'unemployment', direction: 'low', implication: 'Low unemployment correlates with M/C economic optimism; pro-business parties favoured', confidence: 'medium', party_lean: ['M', 'C', 'L'] });
+        signals.push('low_unemployment');
+      }
+    }
+
+    // High median income: right-of-centre lean
+    if (demo.median_income != null) {
+      if (demo.median_income > 400000) {
+        predictions.push({ factor: 'income', direction: 'high', implication: 'High median income correlates with M and L support; lower tax demand', confidence: 'medium', party_lean: ['M', 'L', 'KD'] });
+        signals.push('high_income');
+      } else if (demo.median_income < 250000) {
+        predictions.push({ factor: 'income', direction: 'low', implication: 'Lower income area favours redistribution parties (S, V) and welfare-focus (SD)', confidence: 'medium', party_lean: ['S', 'V', 'SD'] });
+        signals.push('low_income');
+      }
+    }
+
+    // Population growth: influx may dilute existing political base
+    if (demo.population_change_pct != null) {
+      var popChangePct = demo.population_change_pct;
+      if (popChangePct > 5) {
+        predictions.push({ factor: 'population', direction: 'growing', implication: 'Rapidly growing area brings new voters; traditionally less predictable, opportunities for direct outreach', confidence: 'low', party_lean: [] });
+        signals.push('population_growth');
+      } else if (popChangePct < -3) {
+        predictions.push({ factor: 'population', direction: 'declining', implication: 'Population decline often accompanies economic pessimism; SD and S consolidate their existing bases', confidence: 'low', party_lean: ['SD', 'S'] });
+        signals.push('population_decline');
+      }
+    }
+
+    // Shift score summary
+    var shiftScore = demo.demographic_shift_score;
+    var overallOutlook = 'stable';
+    if (shiftScore != null) {
+      if (shiftScore >= 60) overallOutlook = 'high_volatility';
+      else if (shiftScore >= 35) overallOutlook = 'moderate_shift';
+    }
+
+    res.json({
+      area_code: areaCode,
+      demographics: demo,
+      predictions: predictions,
+      signals: signals,
+      overall_outlook: overallOutlook,
+      shift_score: shiftScore,
+      recommendation: predictions.length === 0
+        ? 'Insufficient data for electoral prediction. Collect historical demographic records.'
+        : 'Based on demographic signals, prioritise outreach to: ' + [...new Set(predictions.flatMap(function(p){ return p.party_lean; }))].join(', ') + ' leaning households.'
+    });
+  } catch (err) {
+    console.error('Demographic predict error:', err);
+    res.status(500).json({ error: 'Failed to generate prediction: ' + err.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// PHASE 3 FEATURE 3: AREA SIMILARITY ENGINE
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/areas/similar/:areaCode?limit=10
+// Finds N most similar areas using demographic + voting pattern cosine similarity
+app.get(BASE + '/api/areas/similar/:areaCode', function(req, res) {
+  try {
+    var areaCode = req.params.areaCode;
+    var limit = Math.min(parseInt(req.query.limit) || 10, 30);
+
+    // Determine target area type
+    var targetDistrict = db.prepare('SELECT * FROM voting_districts WHERE code = ?').get(areaCode);
+    var targetMuni = db.prepare('SELECT * FROM municipalities WHERE code = ?').get(areaCode);
+    var targetArea = targetDistrict || targetMuni;
+    if (!targetArea) return res.status(404).json({ error: 'Area not found' });
+
+    var areaType = targetDistrict ? 'district' : 'municipality';
+
+    // Get target demographics
+    var targetDemo = db.prepare(
+      'SELECT * FROM area_demographics WHERE area_code = ? ORDER BY data_year DESC LIMIT 1'
+    ).get(areaCode);
+
+    // Get target election results (2022 Riksdag)
+    var colName = areaType === 'district' ? 'district_code' : 'municipality_code';
+    var targetResults = db.prepare(`
+      SELECT party_code, vote_percentage FROM election_results
+      WHERE ${colName} = ? AND election_year = 2022 AND election_type = 'riksdag'
+      ORDER BY votes DESC
+    `).all(areaCode);
+
+    // Build target feature vector
+    // Features: [foreign_born_pct, higher_education_pct, unemployment_pct, median_age/100, median_income/500000,
+    //            avg_household_size, S_pct, M_pct, SD_pct, MP_pct, V_pct, C_pct, KD_pct, L_pct]
+    function buildVector(demo, results) {
+      var partyPcts = {};
+      (results || []).forEach(function(r) { partyPcts[r.party_code] = (r.vote_percentage || 0) / 100; });
+      return [
+        (demo ? (demo.foreign_born_pct || 0) : 0) / 100,
+        (demo ? (demo.higher_education_pct || 0) : 0) / 100,
+        (demo ? (demo.unemployment_pct || 0) : 0) / 20,
+        (demo ? (demo.median_age || 40) : 40) / 80,
+        (demo ? (demo.median_income || 300000) : 300000) / 600000,
+        (demo ? (demo.avg_household_size || 2) : 2) / 5,
+        partyPcts['S'] || 0,
+        partyPcts['M'] || 0,
+        partyPcts['SD'] || 0,
+        partyPcts['MP'] || 0,
+        partyPcts['V'] || 0,
+        partyPcts['C'] || 0,
+        partyPcts['KD'] || 0,
+        partyPcts['L'] || 0
+      ];
+    }
+
+    function cosineSimilarity(a, b) {
+      var dot = 0, magA = 0, magB = 0;
+      for (var i = 0; i < a.length; i++) {
+        dot += a[i] * b[i];
+        magA += a[i] * a[i];
+        magB += b[i] * b[i];
+      }
+      magA = Math.sqrt(magA);
+      magB = Math.sqrt(magB);
+      if (magA === 0 || magB === 0) return 0;
+      return dot / (magA * magB);
+    }
+
+    var targetVec = buildVector(targetDemo, targetResults);
+
+    // Fetch candidate areas of the same type
+    var candidates;
+    if (areaType === 'district') {
+      candidates = db.prepare(`
+        SELECT vd.code, vd.name, vd.population,
+               m.name as municipality_name, m.code as municipality_code,
+               c.name as county_name, c.code as county_code
+        FROM voting_districts vd
+        LEFT JOIN municipalities m ON m.id = vd.municipality_id
+        LEFT JOIN counties c ON c.id = m.county_id
+        WHERE vd.code != ?
+        LIMIT 2000
+      `).all(areaCode);
+    } else {
+      candidates = db.prepare(`
+        SELECT m.code, m.name, m.population,
+               c.name as county_name, c.code as county_code
+        FROM municipalities m
+        LEFT JOIN counties c ON c.id = m.county_id
+        WHERE m.code != ?
+        LIMIT 400
+      `).all(areaCode);
+    }
+
+    var scored = [];
+
+    candidates.forEach(function(cand) {
+      var candDemo = db.prepare(
+        'SELECT * FROM area_demographics WHERE area_code = ? ORDER BY data_year DESC LIMIT 1'
+      ).get(cand.code);
+
+      var candResults = db.prepare(`
+        SELECT party_code, vote_percentage FROM election_results
+        WHERE ${colName} = ? AND election_year = 2022 AND election_type = 'riksdag'
+        ORDER BY votes DESC
+      `).all(cand.code);
+
+      var candVec = buildVector(candDemo, candResults);
+      var sim = cosineSimilarity(targetVec, candVec);
+
+      // Only include areas with at least some data
+      var hasData = (candDemo != null) || (candResults.length > 0);
+      if (!hasData) return;
+
+      // Top party for display
+      var topParty = candResults.length > 0 ? candResults[0].party_code : null;
+      var topPartyPct = candResults.length > 0 ? candResults[0].vote_percentage : null;
+
+      // Key demographic match reason
+      var matchReasons = [];
+      if (targetDemo && candDemo) {
+        if (Math.abs((targetDemo.foreign_born_pct || 0) - (candDemo.foreign_born_pct || 0)) < 3) matchReasons.push('foreign_born');
+        if (Math.abs((targetDemo.higher_education_pct || 0) - (candDemo.higher_education_pct || 0)) < 5) matchReasons.push('education');
+        if (Math.abs((targetDemo.unemployment_pct || 0) - (candDemo.unemployment_pct || 0)) < 2) matchReasons.push('employment');
+        if (Math.abs((targetDemo.median_age || 0) - (candDemo.median_age || 0)) < 3) matchReasons.push('age');
+      }
+
+      scored.push({
+        area_code: cand.code,
+        area_name: cand.name,
+        municipality_name: cand.municipality_name || null,
+        county_name: cand.county_name,
+        population: cand.population,
+        similarity_score: Math.round(sim * 100),
+        similarity_pct: (sim * 100).toFixed(1),
+        top_party: topParty,
+        top_party_pct: topPartyPct ? topPartyPct.toFixed(1) : null,
+        key_demographic_match: matchReasons[0] || 'voting_pattern',
+        demographics: candDemo ? {
+          foreign_born_pct: candDemo.foreign_born_pct,
+          median_age: candDemo.median_age,
+          median_income: candDemo.median_income,
+          unemployment_pct: candDemo.unemployment_pct,
+          higher_education_pct: candDemo.higher_education_pct
+        } : null
+      });
+    });
+
+    // Sort by similarity descending, take top N
+    scored.sort(function(a, b) { return b.similarity_score - a.similarity_score; });
+    var topN = scored.slice(0, limit);
+
+    res.json({
+      area_code: areaCode,
+      area_name: targetArea.name,
+      area_type: areaType,
+      similar_areas: topN,
+      total_compared: scored.length
+    });
+  } catch (err) {
+    console.error('Area similarity error:', err);
+    res.status(500).json({ error: 'Failed to find similar areas: ' + err.message });
+  }
+});
+
 // SPA fallback
 app.get(BASE + '/*', (req, res) => {
   if (req.path.startsWith(BASE + '/api/')) return res.status(404).json({ error: 'Not found' });

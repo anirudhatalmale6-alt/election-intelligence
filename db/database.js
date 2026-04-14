@@ -425,6 +425,13 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_smart_searches_campaign ON smart_searches(campaign_id);
 `);
 
+// ═══ FEATURE: DEMOGRAPHIC CHANGE TRACKER (Phase 3) ═══
+try { db.exec("ALTER TABLE area_demographics ADD COLUMN previous_population INTEGER"); } catch(e) {}
+try { db.exec("ALTER TABLE area_demographics ADD COLUMN population_change_pct REAL"); } catch(e) {}
+try { db.exec("ALTER TABLE area_demographics ADD COLUMN previous_foreign_born_pct REAL"); } catch(e) {}
+try { db.exec("ALTER TABLE area_demographics ADD COLUMN previous_median_age REAL"); } catch(e) {}
+try { db.exec("ALTER TABLE area_demographics ADD COLUMN demographic_shift_score REAL"); } catch(e) {} // 0-100, higher = more change
+
 // ═══ FEATURE: LANGUAGE MATCHING ═══
 try { db.exec("ALTER TABLE users ADD COLUMN languages TEXT"); } catch(e) {}
 try { db.exec("ALTER TABLE users ADD COLUMN preferred_calling_language TEXT"); } catch(e) {}
