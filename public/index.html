@@ -333,6 +333,84 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
 .similar-card-match{font-size:.7rem;color:var(--text-muted);margin-top:4px}
 .similar-loading{padding:20px;text-align:center;color:var(--text-muted);font-size:.82rem}
 
+/* ═══ PHASE 4: PLAYBACK ANIMATION ═══ */
+.playback-bar{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-top:10px;display:none}
+.playback-bar.active{display:block}
+.playback-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.playback-slider{flex:1;min-width:200px;accent-color:var(--accent);height:4px;cursor:pointer}
+.playback-speed{display:flex;gap:4px}
+.speed-btn{padding:4px 10px;border-radius:var(--radius-sm);font-size:.72rem;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;transition:all .15s}
+.speed-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.playback-counter{font-size:.82rem;color:var(--text-secondary);font-family:var(--mono)}
+.pulse-dot{animation:pulseDot 1.2s ease-in-out infinite}
+@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.6)}}
+
+/* ═══ PHASE 4: BLOC MAP ═══ */
+.bloc-view{margin-top:20px}
+.bloc-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border)}
+.bloc-tab-btn{padding:8px 16px;font-size:.85rem;font-weight:500;color:var(--text-secondary);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s}
+.bloc-tab-btn:hover{color:var(--text-primary)}
+.bloc-tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.bloc-summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.bloc-stat{flex:1;min-width:100px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;text-align:center}
+.bloc-stat-val{font-size:1.4rem;font-weight:700;font-family:var(--mono)}
+.bloc-stat-lbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-top:4px}
+.bloc-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.bloc-legend-item{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--text-secondary)}
+.bloc-legend-dot{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+.bloc-swing-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.bloc-swing-table th{text-align:left;padding:8px 10px;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);border-bottom:1px solid var(--border)}
+.bloc-swing-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.swing-pos{color:var(--supporter)}
+.swing-neg{color:var(--opposition)}
+
+/* ═══ PHASE 4: VOLUNTEER PORTAL ═══ */
+#portalView{display:none;position:fixed;inset:0;background:var(--bg-deep);z-index:3000;overflow-y:auto}
+#portalView.visible{display:block}
+.portal-header{background:linear-gradient(135deg,var(--bg-primary),var(--bg-secondary));border-bottom:1px solid var(--border);padding:20px 28px;display:flex;align-items:center;gap:16px}
+.portal-brand{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),#8b6914);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;color:#000;flex-shrink:0}
+.portal-body{max-width:960px;margin:0 auto;padding:28px 20px}
+.shift-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:16px}
+.shift-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;transition:border-color .2s,transform .2s}
+.shift-card:hover{border-color:var(--border-light);transform:translateY(-2px)}
+.shift-type-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:10px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--accent-dim);color:var(--accent);margin-bottom:10px}
+.shift-title{font-size:1rem;font-weight:600;margin-bottom:6px}
+.shift-meta{font-size:.78rem;color:var(--text-secondary);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.shift-spots{margin-top:10px;height:6px;background:var(--bg-secondary);border-radius:3px;overflow:hidden}
+.shift-spots-bar{height:100%;background:var(--accent);border-radius:3px;transition:width .3s}
+.shift-spots-label{font-size:.72rem;color:var(--text-muted);margin-top:4px}
+.portal-confirm{background:var(--bg-secondary);border:1px solid rgba(34,197,94,0.3);border-radius:var(--radius-lg);padding:24px;text-align:center;margin-top:20px;display:none}
+.portal-confirm.visible{display:block;animation:fadeUp .35s ease}
+.portal-confirm-icon{font-size:2.5rem;color:var(--supporter);margin-bottom:12px}
+
+/* ═══ PHASE 4: VOLUNTEER JOURNEY ═══ */
+.journey-level-bar{height:10px;background:var(--bg-secondary);border-radius:5px;overflow:hidden;margin:8px 0 4px}
+.journey-level-fill{height:100%;background:linear-gradient(90deg,var(--accent),#ddb832);border-radius:5px;transition:width .6s ease}
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;margin-top:16px}
+.badge-item{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);padding:14px 10px;text-align:center;transition:all .2s}
+.badge-item.earned{border-color:var(--accent);background:var(--accent-dim)}
+.badge-item.locked{opacity:.45}
+.badge-item i{font-size:1.6rem;margin-bottom:8px;display:block}
+.badge-item.earned i{color:var(--accent)}
+.badge-item.locked i{color:var(--text-muted)}
+.badge-item-name{font-size:.7rem;font-weight:700;line-height:1.3;color:var(--text-secondary)}
+.badge-item.earned .badge-item-name{color:var(--text-primary)}
+.badge-item-xp{font-size:.65rem;color:var(--accent);font-family:var(--mono);margin-top:4px;font-weight:700}
+.leaderboard-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.leaderboard-row:last-child{border-bottom:none}
+.leaderboard-rank{width:24px;height:24px;border-radius:50%;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:var(--text-muted);flex-shrink:0}
+.leaderboard-rank.gold{background:var(--accent);color:#000}
+.leaderboard-rank.silver{background:#9ca3af;color:#000}
+.leaderboard-rank.bronze{background:#b45309;color:#fff}
+.leaderboard-name{flex:1;font-size:.88rem;font-weight:500}
+.leaderboard-xp{font-size:.82rem;font-family:var(--mono);color:var(--accent)}
+.level-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:12px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.level-rookie{background:rgba(107,114,128,0.2);color:#9ca3af}
+.level-active{background:rgba(34,197,94,0.15);color:var(--supporter)}
+.level-veteran{background:rgba(201,162,39,0.2);color:var(--accent)}
+.level-coordinator{background:rgba(139,92,246,0.2);color:#a78bfa}
+.level-legend{background:linear-gradient(135deg,rgba(201,162,39,0.3),rgba(139,92,246,0.3));color:#fbbf24;border:1px solid var(--accent)}
+
 /* ═══ RESPONSIVE ═══ */
 @media(max-width:768px){
   .sidebar{width:var(--sidebar-collapsed)}
@@ -421,6 +499,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
     <div class="nav-item" onclick="navigateTo('results')" data-page="results">
       <i class="fas fa-chart-bar"></i><span class="nav-label" data-t="nav_results">Resultat</span>
     </div>
+    <div class="nav-item" onclick="navigateTo('journey')" data-page="journey">
+      <i class="fas fa-medal"></i><span class="nav-label" data-t="nav_journey">Min resa</span>
+    </div>
     <div class="nav-section-title nav-admin-only" data-t="nav_system">SYSTEM</div>
     <div class="nav-item nav-admin-only" onclick="navigateTo('admin')" data-page="admin">
       <i class="fas fa-cog"></i><span class="nav-label" data-t="nav_admin">Admin</span>
@@ -497,12 +578,38 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
       <select id="mapYear" onchange="loadMapData()">
         <option value="2022">2022</option>
         <option value="2018">2018</option>
+        <option value="playback">Playback</option>
       </select>
       <select id="mapType" onchange="loadMapData()">
         <option value="riksdag">Riksdag</option>
         <option value="region">Region</option>
         <option value="kommun">Kommun</option>
       </select>
+      <button class="btn btn-secondary btn-sm" id="playbackToggleBtn" onclick="togglePlaybackMode()" data-t="playback_btn" style="display:none">
+        <i class="fas fa-play-circle"></i> <span data-t="playback_btn">Playback</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Playback Bar -->
+  <div class="playback-bar" id="playbackBar">
+    <div class="playback-controls">
+      <button class="btn btn-primary btn-sm" id="playbackPlayBtn" onclick="playbackPlayPause()" style="min-width:80px">
+        <i class="fas fa-play" id="playbackPlayIcon"></i> <span id="playbackPlayLabel" data-t="play">Spela</span>
+      </button>
+      <input type="range" class="playback-slider" id="playbackSlider" min="0" value="0" oninput="playbackSeek(parseInt(this.value))">
+      <div class="playback-speed">
+        <button class="speed-btn active" onclick="setPlaybackSpeed(1,this)">1x</button>
+        <button class="speed-btn" onclick="setPlaybackSpeed(2,this)">2x</button>
+        <button class="speed-btn" onclick="setPlaybackSpeed(4,this)">4x</button>
+      </div>
+      <div class="playback-counter" id="playbackCounter">— / —</div>
+    </div>
+    <div style="font-size:.75rem;color:var(--text-secondary);display:flex;gap:16px;flex-wrap:wrap">
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--supporter);margin-right:4px"></span><span data-t="supporter">Supporter</span></span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--soft-yes);margin-right:4px"></span>Soft Yes</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--opposition);margin-right:4px"></span>Opposition</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6b7280;margin-right:4px"></span>Other</span>
     </div>
   </div>
 
@@ -1056,6 +1163,55 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
     </div>
   </div>
 
+  <!-- Bloc Analytics (Phase 4 Feature 2) -->
+  <div class="bloc-view" id="blocView" style="margin-top:28px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <h2 style="font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:10px;margin:0">
+        <i class="fas fa-layer-group" style="color:var(--accent)"></i>
+        <span data-t="bloc_analytics_title">Blockanalys</span>
+      </h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="blocYear" onchange="loadBlocMap()" style="font-size:.82rem">
+          <option value="2022">2022</option>
+          <option value="2018">2018</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="loadBlocMap()"><i class="fas fa-sync-alt"></i></button>
+      </div>
+    </div>
+    <div class="bloc-legend">
+      <div class="bloc-legend-item"><div class="bloc-legend-dot" style="background:#e8112d"></div><span data-t="bloc_red_green">Rod-gron (S,V,MP)</span></div>
+      <div class="bloc-legend-item"><div class="bloc-legend-dot" style="background:#1b49dd"></div><span data-t="bloc_blue">Bla (M,KD,L)</span></div>
+      <div class="bloc-legend-item"><div class="bloc-legend-dot" style="background:#dddd00"></div><span data-t="bloc_sd">SD</span></div>
+      <div class="bloc-legend-item"><div class="bloc-legend-dot" style="background:#00d97e"></div><span data-t="bloc_c">C (vagun)</span></div>
+      <div class="bloc-legend-item"><div class="bloc-legend-dot" style="background:#6b7280"></div><span data-t="bloc_other">Ovriga</span></div>
+    </div>
+    <div class="bloc-summary" id="blocSummary"></div>
+    <div class="bloc-tabs">
+      <button class="bloc-tab-btn active" onclick="showBlocTab('map',this)" data-t="bloc_map_tab">Karta</button>
+      <button class="bloc-tab-btn" onclick="showBlocTab('table',this)" data-t="bloc_table_tab">Swing-tabell</button>
+    </div>
+    <div id="blocMapTab">
+      <div id="blocMapContainer" style="height:400px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">
+        <div id="blocLeafletMap" style="height:100%;width:100%;background:var(--bg-secondary)"></div>
+      </div>
+    </div>
+    <div id="blocTableTab" style="display:none">
+      <div class="card" style="padding:0;overflow-x:auto;margin-top:0">
+        <table class="bloc-swing-table">
+          <thead><tr>
+            <th data-t="area">Omrade</th>
+            <th data-t="dominant_bloc">Dominerande block</th>
+            <th>Rod-gron %</th>
+            <th>Bla %</th>
+            <th>SD %</th>
+            <th data-t="swing">Swing</th>
+          </tr></thead>
+          <tbody id="blocSwingBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- Demographic Change Tracker (Phase 3 Feature 2) -->
   <div style="margin-top:28px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
@@ -1097,6 +1253,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
     <button class="tab-btn active" onclick="showAdminTab('users')">Users</button>
     <button class="tab-btn" onclick="showAdminTab('policies')">AI Policies</button>
     <button class="tab-btn" onclick="showAdminTab('import')">Data Import</button>
+    <button class="tab-btn" onclick="showAdminTab('volunteers')"><i class="fas fa-hands-helping"></i> Volunteers</button>
     <button class="tab-btn" onclick="showAdminTab('settings')">Settings</button>
   </div>
   <div class="tab-panel active" id="admin-users">
@@ -1174,6 +1331,29 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
       </div>
     </div>
   </div>
+  <!-- Admin Volunteers Tab -->
+  <div class="tab-panel" id="admin-volunteers">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <h3 style="margin:0;font-size:1rem"><i class="fas fa-hands-helping" style="color:var(--accent);margin-right:8px"></i><span data-t="volunteer_signups">Volontaranmalningar</span></h3>
+      <div style="display:flex;gap:8px">
+        <select id="adminVolStatus" onchange="loadAdminVolunteers()" style="font-size:.82rem">
+          <option value="">Alla statusar</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="declined">Declined</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="openModal('createShiftModal')"><i class="fas fa-plus"></i> <span data-t="new_shift">Nytt pass</span></button>
+        <button class="btn btn-secondary btn-sm" onclick="loadAdminVolunteers()"><i class="fas fa-sync-alt"></i></button>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow-x:auto">
+      <table class="data-table">
+        <thead><tr><th data-t="name">Namn</th><th>Email</th><th>Phone</th><th data-t="shift">Pass</th><th>Status</th><th data-t="registered">Registrerad</th><th></th></tr></thead>
+        <tbody id="adminVolunteersBody"></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="tab-panel" id="admin-settings">
     <div class="card">
       <div class="card-title">System Settings</div>
@@ -1304,7 +1484,121 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
   </div>
 </div>
 
+<!-- JOURNEY PAGE -->
+<div class="page" id="page-journey">
+  <div class="page-header">
+    <h1 class="page-title"><i class="fas fa-medal"></i> <span data-t="journey_title">Min Resa</span></h1>
+    <button class="btn btn-secondary btn-sm" onclick="loadJourney()"><i class="fas fa-sync-alt"></i></button>
+  </div>
+
+  <div class="grid-2" style="gap:20px;margin-bottom:20px">
+    <!-- Level Card -->
+    <div class="card">
+      <div class="card-title" data-t="your_level">Din niva</div>
+      <div id="journeyLevelSection" style="margin-top:8px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div id="journeyLevelBadge" class="level-badge level-rookie"><i class="fas fa-star"></i> Rookie</div>
+          <div style="font-family:var(--mono);font-size:.9rem;color:var(--accent)" id="journeyXp">0 XP</div>
+        </div>
+        <div class="journey-level-bar"><div class="journey-level-fill" id="journeyLevelBar" style="width:0%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-muted)">
+          <span id="journeyLevelName">Rookie</span>
+          <span id="journeyNextLevel" data-t="next_level">Nasta niva</span>
+        </div>
+        <div style="margin-top:8px;font-size:.78rem;color:var(--text-secondary)" id="journeyXpToNext"></div>
+      </div>
+    </div>
+    <!-- Stats Card -->
+    <div class="card">
+      <div class="card-title" data-t="your_stats">Din statistik</div>
+      <div class="stat-grid" style="grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px;margin-bottom:0" id="journeyStatGrid">
+        <div class="stat-card" style="padding:12px 14px"><div class="stat-icon"><i class="fas fa-handshake"></i></div><div class="stat-value" id="jsTotalContacts">0</div><div class="stat-label" data-t="contacts">Kontakter</div></div>
+        <div class="stat-card" style="padding:12px 14px"><div class="stat-icon"><i class="fas fa-door-open"></i></div><div class="stat-value" id="jsTotalDoors">0</div><div class="stat-label" data-t="door_knocking">Dorrkn.</div></div>
+        <div class="stat-card" style="padding:12px 14px"><div class="stat-icon"><i class="fas fa-phone"></i></div><div class="stat-value" id="jsTotalCalls">0</div><div class="stat-label" data-t="phone_banking">Samtal</div></div>
+        <div class="stat-card" style="padding:12px 14px"><div class="stat-icon"><i class="fas fa-fire"></i></div><div class="stat-value" id="jsStreak">0</div><div class="stat-label" data-t="streak">Streak (d)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Badges -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title" data-t="badges">Marken</div>
+    <div class="badge-grid" id="journeyBadgeGrid">
+      <div class="empty-state" style="padding:30px;grid-column:1/-1"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i></div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="gap:20px">
+    <!-- Leaderboard -->
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary)"><i class="fas fa-trophy" style="color:var(--accent);margin-right:8px"></i><span data-t="leaderboard">Topplista</span></div>
+      <div id="journeyLeaderboard">
+        <div class="empty-state" style="padding:30px"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i></div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary)"><i class="fas fa-history" style="color:var(--accent);margin-right:8px"></i><span data-t="recent_activity">Senaste aktivitet</span></div>
+      <div class="contact-timeline" id="journeyActivity">
+        <div class="empty-state" style="padding:30px"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
+
+<!-- ═══ VOLUNTEER PORTAL OVERLAY ═══ -->
+<div id="portalView">
+  <div class="portal-header">
+    <div class="portal-brand">V</div>
+    <div>
+      <div style="font-size:1.1rem;font-weight:700" id="portalCampaignName" data-t="portal_title">Volontarportalen</div>
+      <div style="font-size:.8rem;color:var(--text-secondary)" data-t="portal_subtitle">Anmal dig som volontar</div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="hidePortal()" style="margin-left:auto"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="portal-body">
+    <!-- Campaign select -->
+    <div style="margin-bottom:20px">
+      <label style="font-size:.78rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px" data-t="select_campaign">Valj kampanj</label>
+      <select id="portalCampaignSel" onchange="loadPortalShifts()" style="max-width:400px;width:100%">
+        <option value="">-- Valj kampanj --</option>
+      </select>
+    </div>
+    <!-- Confirmation message (hidden by default) -->
+    <div class="portal-confirm" id="portalConfirm">
+      <div class="portal-confirm-icon"><i class="fas fa-check-circle"></i></div>
+      <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:8px" data-t="signup_confirmed">Anmalan bekraftad!</h2>
+      <p style="color:var(--text-secondary);font-size:.9rem" data-t="signup_confirmed_desc">Tack for din anmalan! Vi aterkomme med mer information.</p>
+      <button class="btn btn-secondary btn-sm" style="margin-top:14px" onclick="document.getElementById('portalConfirm').classList.remove('visible')" data-t="close">Stang</button>
+    </div>
+    <!-- Shifts -->
+    <div id="portalShiftsSection" style="display:none">
+      <h2 style="font-size:1rem;font-weight:600;margin-bottom:4px" data-t="available_shifts">Tillgangliga pass</h2>
+      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:0" data-t="available_shifts_desc">Klicka pa ett pass for att anmala dig</p>
+      <div class="shift-cards" id="portalShiftCards"></div>
+    </div>
+    <div id="portalEmptyState" class="empty-state" style="padding:60px;display:none">
+      <i class="fas fa-calendar-times"></i>
+      <p data-t="no_shifts">Inga pass tillgangliga just nu</p>
+    </div>
+    <!-- General signup (no specific shift) -->
+    <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border)">
+      <h2 style="font-size:1rem;font-weight:600;margin-bottom:4px" data-t="general_signup">Allmant intresse</h2>
+      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:16px" data-t="general_signup_desc">Anmal allmant intresse av att volontararbeta</p>
+      <div class="grid-2" style="max-width:600px">
+        <div class="form-group"><label data-t="name">Namn *</label><input type="text" id="portalName" placeholder="Ditt namn"></div>
+        <div class="form-group"><label data-t="lbl_email">E-post *</label><input type="email" id="portalEmail" placeholder="din@email.se"></div>
+        <div class="form-group"><label data-t="phone_number">Telefon</label><input type="text" id="portalPhone" placeholder="+46..."></div>
+        <div class="form-group"><label data-t="languages">Sprak</label><input type="text" id="portalLangs" placeholder="t.ex. svenska, arabiska"></div>
+      </div>
+      <div class="form-group" style="max-width:600px"><label data-t="notes">Meddelande</label><textarea id="portalMessage" rows="3" placeholder="Hur vill du bidra?"></textarea></div>
+      <button class="btn btn-primary" onclick="submitPortalSignup(null)"><i class="fas fa-paper-plane"></i> <span data-t="send_signup">Skicka anmalan</span></button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ MODALS ═══ -->
 <div class="modal-overlay" id="campaignModal">
@@ -1368,6 +1662,67 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('saveSmartSearchModal')">Avbryt</button>
       <button class="btn btn-primary" onclick="confirmSaveSmartSearch()"><i class="fas fa-save"></i> Spara</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shift Signup Modal (Portal) -->
+<div class="modal-overlay" id="shiftSignupModal">
+  <div class="modal">
+    <div class="modal-header"><h3 data-t="join_shift">Anmal dig till pass</h3><button class="btn-ghost" onclick="closeModal('shiftSignupModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div id="shiftSignupShiftInfo" style="background:var(--bg-secondary);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;font-size:.85rem"></div>
+      <input type="hidden" id="shiftSignupShiftId">
+      <div class="form-row">
+        <div class="form-group"><label data-t="name">Namn *</label><input type="text" id="shiftSignupName" placeholder="Ditt namn"></div>
+        <div class="form-group"><label data-t="lbl_email">E-post *</label><input type="email" id="shiftSignupEmail" placeholder="din@email.se"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label data-t="phone_number">Telefon</label><input type="text" id="shiftSignupPhone" placeholder="+46..."></div>
+        <div class="form-group"><label data-t="languages">Sprak</label><input type="text" id="shiftSignupLangs" placeholder="t.ex. svenska, arabiska"></div>
+      </div>
+      <div class="form-group"><label data-t="notes">Meddelande</label><textarea id="shiftSignupMessage" rows="2" placeholder="Ovriga kommentarer..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('shiftSignupModal')" data-t="cancel">Avbryt</button>
+      <button class="btn btn-primary" onclick="submitPortalSignup(document.getElementById('shiftSignupShiftId').value)"><i class="fas fa-check"></i> <span data-t="confirm_signup">Bekrafta anmalan</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Shift Modal (Admin) -->
+<div class="modal-overlay" id="createShiftModal">
+  <div class="modal">
+    <div class="modal-header"><h3 data-t="new_shift">Nytt pass</h3><button class="btn-ghost" onclick="closeModal('createShiftModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label data-t="campaigns">Kampanj</label>
+        <select id="shiftCampaignSel" style="width:100%"></select>
+      </div>
+      <div class="form-group"><label data-t="shift_title">Titel</label><input type="text" id="shiftTitle" placeholder="t.ex. Dorrknarkning Sodermalm"></div>
+      <div class="form-group"><label data-t="description">Beskrivning</label><textarea id="shiftDesc" rows="2"></textarea></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label data-t="shift_type">Typ</label>
+          <select id="shiftType">
+            <option value="door_knock">Dorrknarkning</option>
+            <option value="phone">Telefon</option>
+            <option value="event">Event</option>
+            <option value="leaflet">Flygblad</option>
+            <option value="transport">Transport</option>
+          </select>
+        </div>
+        <div class="form-group"><label data-t="max_volunteers">Max volontarer</label><input type="number" id="shiftMaxVol" value="5" min="1"></div>
+      </div>
+      <div class="form-group"><label data-t="location">Plats</label><input type="text" id="shiftLocation" placeholder="t.ex. Medborgarplatsen, Stockholm"></div>
+      <div class="form-row">
+        <div class="form-group"><label data-t="start_time">Start</label><input type="datetime-local" id="shiftStartTime"></div>
+        <div class="form-group"><label data-t="end_time">Slut</label><input type="datetime-local" id="shiftEndTime"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('createShiftModal')" data-t="cancel">Avbryt</button>
+      <button class="btn btn-primary" onclick="saveShift()"><i class="fas fa-save"></i> <span data-t="save">Spara</span></button>
     </div>
   </div>
 </div>
@@ -1488,7 +1843,30 @@ var T = {
     find_similar:'Hitta liknande',similarity_pct:'Likhet',no_similar_found:'Inga liknande distrikt hittades',
     similar_loading:'Hittar liknande distrikt...',key_match_foreign_born:'Demografisk matchning: utrikesfoddda',
     key_match_education:'Demografisk matchning: utbildning',key_match_employment:'Demografisk matchning: sysselsattning',
-    key_match_age:'Demografisk matchning: alder',key_match_voting:'Rostmonstermatchning'
+    key_match_age:'Demografisk matchning: alder',key_match_voting:'Rostmonstermatchning',
+    // Phase 4: Playback
+    playback_btn:'Playback',play:'Spela',pause:'Pausa',playback_loading:'Laddar kampanjdata...',
+    day_counter:'Dag',contacts_total:'kontakter totalt',no_timeline_data:'Ingen aktivitetsdata for denna kampanj',
+    // Phase 4: Bloc Analytics
+    bloc_analytics_title:'Blockanalys',bloc_red_green:'Rod-gron (S,V,MP)',bloc_blue:'Bla (M,KD,L)',
+    bloc_sd:'SD',bloc_c:'C (vagun)',bloc_other:'Ovriga',dominant_bloc:'Dominerande block',
+    bloc_map_tab:'Karta',bloc_table_tab:'Swing-tabell',swing:'Swing',area:'Omrade',
+    bloc_loading:'Laddar blockdata...',no_bloc_data:'Ingen blockdata tillganglig',
+    // Phase 4: Volunteer Portal
+    portal_title:'Volontarportalen',portal_subtitle:'Anmal dig som volontar',select_campaign:'Valj kampanj',
+    available_shifts:'Tillgangliga pass',available_shifts_desc:'Klicka pa ett pass for att anmala dig',
+    no_shifts:'Inga pass tillgangliga just nu',general_signup:'Allmant intresse',
+    general_signup_desc:'Anmal allmant intresse av att volontararbeta',send_signup:'Skicka anmalan',
+    join_shift:'Anmal dig till pass',confirm_signup:'Bekrafta anmalan',cancel:'Avbryt',
+    signup_confirmed:'Anmalan bekraftad!',signup_confirmed_desc:'Tack for din anmalan!',
+    spots_remaining:'platser kvar',shift_full:'Fullt',new_shift:'Nytt pass',shift_title:'Titel',
+    shift_type:'Typ',max_volunteers:'Max volontarer',location:'Plats',start_time:'Start',end_time:'Slut',
+    volunteer_signups:'Volontaranmalningar',close:'Stang',registered:'Registrerad',shift:'Pass',
+    // Phase 4: Journey
+    nav_journey:'Min resa',journey_title:'Min Resa',your_level:'Din niva',your_stats:'Din statistik',
+    badges:'Marken',leaderboard:'Topplista',recent_activity:'Senaste aktivitet',
+    next_level:'Nasta niva',streak:'Streak',xp_label:'XP',level_rookie:'Rookie',level_active:'Aktiv',
+    level_veteran:'Veteran',level_coordinator:'Samordnare',level_legend:'Legend'
   },
   en: {
     nav_main:'MAIN MENU',nav_dashboard:'Dashboard',nav_map:'Map',nav_campaigns:'Campaigns',
@@ -1573,7 +1951,30 @@ var T = {
     find_similar:'Find Similar',similarity_pct:'Similarity',no_similar_found:'No similar districts found',
     similar_loading:'Finding similar districts...',key_match_foreign_born:'Demographic match: foreign-born',
     key_match_education:'Demographic match: education',key_match_employment:'Demographic match: employment',
-    key_match_age:'Demographic match: age',key_match_voting:'Voting pattern match'
+    key_match_age:'Demographic match: age',key_match_voting:'Voting pattern match',
+    // Phase 4: Playback
+    playback_btn:'Playback',play:'Play',pause:'Pause',playback_loading:'Loading campaign data...',
+    day_counter:'Day',contacts_total:'contacts total',no_timeline_data:'No activity data for this campaign',
+    // Phase 4: Bloc Analytics
+    bloc_analytics_title:'Bloc Analytics',bloc_red_green:'Red-Green (S,V,MP)',bloc_blue:'Blue (M,KD,L)',
+    bloc_sd:'SD',bloc_c:'C (swing)',bloc_other:'Other',dominant_bloc:'Dominant Bloc',
+    bloc_map_tab:'Map',bloc_table_tab:'Swing Table',swing:'Swing',area:'Area',
+    bloc_loading:'Loading bloc data...',no_bloc_data:'No bloc data available',
+    // Phase 4: Volunteer Portal
+    portal_title:'Volunteer Portal',portal_subtitle:'Sign up as a volunteer',select_campaign:'Select Campaign',
+    available_shifts:'Available Shifts',available_shifts_desc:'Click a shift to sign up',
+    no_shifts:'No shifts available right now',general_signup:'General Interest',
+    general_signup_desc:'Register general interest in volunteering',send_signup:'Send Registration',
+    join_shift:'Join Shift',confirm_signup:'Confirm Registration',cancel:'Cancel',
+    signup_confirmed:'Registration Confirmed!',signup_confirmed_desc:'Thank you for registering!',
+    spots_remaining:'spots remaining',shift_full:'Full',new_shift:'New Shift',shift_title:'Title',
+    shift_type:'Type',max_volunteers:'Max Volunteers',location:'Location',start_time:'Start',end_time:'End',
+    volunteer_signups:'Volunteer Signups',close:'Close',registered:'Registered',shift:'Shift',
+    // Phase 4: Journey
+    nav_journey:'My Journey',journey_title:'My Journey',your_level:'Your Level',your_stats:'Your Stats',
+    badges:'Badges',leaderboard:'Leaderboard',recent_activity:'Recent Activity',
+    next_level:'Next Level',streak:'Streak',xp_label:'XP',level_rookie:'Rookie',level_active:'Active',
+    level_veteran:'Veteran',level_coordinator:'Coordinator',level_legend:'Legend'
   },
   hi: {
     nav_main:'MUKHYA MENU',nav_dashboard:'Dashboard',nav_map:'Naksha',nav_campaigns:'Abhiyan',
@@ -1640,6 +2041,11 @@ var T = {
     no_briefings:'Abhi koi briefing nahi',briefing_for:'Briefing ke liye',
     voter_signed_up:'Registered',voter_survey_done:'Survey ho gayi',voter_volunteered:'Volunteer hua',
     action_logged:'Karya darj',voter_dequeued:'Voter queue se hata diya',quick_voter_actions:'Tvarit Matdata Karya',
+    // Phase 4
+    playback_btn:'Playback',play:'Chalayein',pause:'Rokein',bloc_analytics_title:'Bloc Vishleshan',
+    portal_title:'Volontaar Portal',join_shift:'Pass mein shamil hon',signup_confirmed:'Panjikaran Pahunt!',
+    nav_journey:'Meri Yatra',journey_title:'Meri Yatra',your_level:'Teri niva',badges:'Marken',
+    leaderboard:'Topplista',cancel:'Raddh karein',send_signup:'Bhejein',confirm_signup:'Pakka karein',
     // Phase 3
     alerts_title:'Bhaasha Antaar Sanket',alerts_empty:'Koi sakriya bhaasha antaar nahi',alerts_critical:'Ati Aavashyak',alerts_warning:'Chetavni',
     alert_callers_available:'caller upalabdh',alert_callers_none:'Koi caller nahi',alert_needs_lang:'Bhaasha ki zaroorat',
@@ -1723,6 +2129,11 @@ var T = {
     no_briefings:'Abhi koi briefing nahi',briefing_for:'Briefing baraye',
     voter_signed_up:'Registered',voter_survey_done:'Survey Mukammal',voter_volunteered:'Volunteer',
     action_logged:'Iqdam darj',voter_dequeued:'Voter queue se hata diya',quick_voter_actions:'Fori Voter Iqdam',
+    // Phase 4
+    playback_btn:'Playback',play:'Chalayein',pause:'Rokein',bloc_analytics_title:'Bloc Tahleel',
+    portal_title:'Volonteer Portal',join_shift:'Pass mein shamil hon',signup_confirmed:'Panjikaran Pahuncha!',
+    nav_journey:'Mera Safar',journey_title:'Mera Safar',your_level:'Aap ka darjaa',badges:'Nishaan',
+    leaderboard:'Toplist',cancel:'Mansoukh karein',send_signup:'Bhejein',confirm_signup:'Tasdeeq karein',
     // Phase 3
     alerts_title:'Zabaan Farq Ittila',alerts_empty:'Koi faal zabaan farq nahi',alerts_critical:'Ahem',alerts_warning:'Khabardar',
     alert_callers_available:'caller maujood',alert_callers_none:'Koi caller nahi',alert_needs_lang:'Zabaan ki zaroorat',
@@ -4072,6 +4483,658 @@ window.navigateTo = function(page) {
     setTimeout(loadDemoChanges, 200);
   }
 };
+
+// ═══════════════════════════════════════════════════════════
+// PHASE 4 FEATURE 1: CAMPAIGN PLAYBACK ANIMATION
+// ═══════════════════════════════════════════════════════════
+var _playbackData = null;
+var _playbackIdx = 0;
+var _playbackPlaying = false;
+var _playbackTimer = null;
+var _playbackSpeed = 1;
+var _playbackDots = [];
+var _playbackMode = false;
+
+function togglePlaybackMode() {
+  _playbackMode = !_playbackMode;
+  var bar = document.getElementById('playbackBar');
+  var btn = document.getElementById('playbackToggleBtn');
+  if (_playbackMode) {
+    bar.classList.add('active');
+    if(btn) btn.classList.add('btn-primary'), btn.classList.remove('btn-secondary');
+    loadPlaybackData();
+  } else {
+    bar.classList.remove('active');
+    if(btn) btn.classList.remove('btn-primary'), btn.classList.add('btn-secondary');
+    stopPlayback();
+    clearPlaybackDots();
+  }
+}
+
+async function loadPlaybackData() {
+  var counter = document.getElementById('playbackCounter');
+  if (counter) counter.textContent = t('playback_loading');
+
+  // Find current campaign
+  var campaigns = [];
+  try { var d = await apiFetch('/campaigns'); campaigns = d.data || []; } catch(e) {}
+  if (campaigns.length === 0) {
+    if (counter) counter.textContent = t('no_timeline_data');
+    return;
+  }
+  var campId = campaigns[0].id;
+
+  try {
+    var data = await apiFetch('/campaigns/' + campId + '/timeline');
+    _playbackData = data;
+    _playbackIdx = 0;
+
+    var slider = document.getElementById('playbackSlider');
+    if (slider) {
+      slider.min = 0;
+      slider.max = Math.max(0, (data.dates || []).length - 1);
+      slider.value = 0;
+    }
+    updatePlaybackFrame(0);
+  } catch(e) {
+    if (counter) counter.textContent = t('no_timeline_data');
+  }
+}
+
+function updatePlaybackFrame(idx) {
+  if (!_playbackData || !_playbackData.dates || _playbackData.dates.length === 0) return;
+  var dates = _playbackData.dates;
+  var activity = _playbackData.activity || [];
+  var date = dates[idx] || dates[0];
+
+  // Clear old dots
+  clearPlaybackDots();
+
+  // Count contacts up to this date
+  var totalSoFar = 0;
+  var todayActivity = [];
+  activity.forEach(function(a) {
+    if (a.date <= date) totalSoFar += a.contact_count;
+    if (a.date === date) todayActivity.push(a);
+  });
+
+  // Draw dots on map
+  if (_map) {
+    todayActivity.forEach(function(a) {
+      if (!a.lat || !a.lng) return;
+      var color = outcomeColor(a.outcomes);
+      var dot = L.circleMarker([a.lat, a.lng], {
+        radius: Math.max(6, Math.min(20, Math.sqrt(a.contact_count) * 3)),
+        color: color,
+        fillColor: color,
+        fillOpacity: 0.7,
+        weight: 2,
+        className: 'pulse-dot'
+      }).addTo(_map);
+      dot.bindTooltip(a.district_name + ': ' + a.contact_count + ' kontakter', {permanent: false});
+      _playbackDots.push(dot);
+    });
+  }
+
+  var counter = document.getElementById('playbackCounter');
+  if (counter) counter.textContent = t('day_counter') + ' ' + (idx+1) + '/' + dates.length + ' — ' + totalSoFar + ' ' + t('contacts_total') + ' (' + date + ')';
+
+  var slider = document.getElementById('playbackSlider');
+  if (slider) slider.value = idx;
+}
+
+function outcomeColor(outcomes) {
+  if (!outcomes) return '#6b7280';
+  var max = 0;
+  var winner = 'unknown';
+  Object.keys(outcomes).forEach(function(k) {
+    if (outcomes[k] > max) { max = outcomes[k]; winner = k; }
+  });
+  var colorMap = { supporter: '#22c55e', soft_yes: '#eab308', opposition: '#ef4444', undecided: '#6b7280', no_answer: '#8b5cf6', invalid: '#64748b', unknown: '#6b7280' };
+  return colorMap[winner] || '#6b7280';
+}
+
+function clearPlaybackDots() {
+  if (_map) _playbackDots.forEach(function(d) { try { _map.removeLayer(d); } catch(e){} });
+  _playbackDots = [];
+}
+
+function playbackPlayPause() {
+  _playbackPlaying = !_playbackPlaying;
+  var icon = document.getElementById('playbackPlayIcon');
+  var label = document.getElementById('playbackPlayLabel');
+  if (_playbackPlaying) {
+    if (icon) icon.className = 'fas fa-pause';
+    if (label) label.textContent = t('pause');
+    runPlayback();
+  } else {
+    if (icon) icon.className = 'fas fa-play';
+    if (label) label.textContent = t('play');
+    stopPlayback();
+  }
+}
+
+function runPlayback() {
+  if (_playbackTimer) clearInterval(_playbackTimer);
+  var interval = Math.max(200, 1200 / _playbackSpeed);
+  _playbackTimer = setInterval(function() {
+    if (!_playbackData || !_playbackData.dates) return;
+    _playbackIdx++;
+    if (_playbackIdx >= _playbackData.dates.length) {
+      _playbackIdx = 0;
+      _playbackPlaying = false;
+      stopPlayback();
+      var icon = document.getElementById('playbackPlayIcon');
+      var label = document.getElementById('playbackPlayLabel');
+      if (icon) icon.className = 'fas fa-play';
+      if (label) label.textContent = t('play');
+      return;
+    }
+    updatePlaybackFrame(_playbackIdx);
+  }, interval);
+}
+
+function stopPlayback() {
+  if (_playbackTimer) { clearInterval(_playbackTimer); _playbackTimer = null; }
+}
+
+function playbackSeek(idx) {
+  _playbackIdx = idx;
+  updatePlaybackFrame(idx);
+}
+
+function setPlaybackSpeed(speed, btn) {
+  _playbackSpeed = speed;
+  document.querySelectorAll('.speed-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  if (_playbackPlaying) runPlayback();
+}
+
+// Show playback btn when map page loaded
+var _origLoadMapData = null;
+
+window.addEventListener('DOMContentLoaded', function() {
+  var yearSel = document.getElementById('mapYear');
+  if (yearSel) {
+    yearSel.addEventListener('change', function() {
+      var btn = document.getElementById('playbackToggleBtn');
+      if (btn) btn.style.display = this.value === 'playback' ? '' : 'none';
+      if (this.value !== 'playback' && _playbackMode) {
+        _playbackMode = false;
+        document.getElementById('playbackBar').classList.remove('active');
+        stopPlayback(); clearPlaybackDots();
+      }
+    });
+  }
+});
+
+window.togglePlaybackMode = togglePlaybackMode;
+window.playbackPlayPause = playbackPlayPause;
+window.playbackSeek = playbackSeek;
+window.setPlaybackSpeed = setPlaybackSpeed;
+
+// ═══════════════════════════════════════════════════════════
+// PHASE 4 FEATURE 2: BLOC ANALYTICS
+// ═══════════════════════════════════════════════════════════
+var _blocMap = null;
+var _blocGeoLayer = null;
+
+function showBlocTab(tab, btn) {
+  document.getElementById('blocMapTab').style.display = tab === 'map' ? '' : 'none';
+  document.getElementById('blocTableTab').style.display = tab === 'table' ? '' : 'none';
+  document.querySelectorAll('.bloc-tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  if (tab === 'map' && _blocMap) setTimeout(function() { _blocMap.invalidateSize(); }, 100);
+}
+
+async function loadBlocMap() {
+  var year = (document.getElementById('blocYear') || {}).value || '2022';
+  var summary = document.getElementById('blocSummary');
+  var swingBody = document.getElementById('blocSwingBody');
+  if (summary) summary.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:.82rem"><i class="fas fa-spinner fa-spin"></i> ' + t('bloc_loading') + '</div>';
+
+  try {
+    var data = await apiFetch('/analytics/bloc-map?year=' + year);
+    renderBlocSummary(data.summary || {}, data.year, data.prev_year);
+    renderBlocTable(data.areas || [], swingBody);
+    renderBlocMapLayer(data.areas || []);
+  } catch(e) {
+    if (summary) summary.innerHTML = '<div style="color:var(--opposition);padding:10px">' + escapeHtml(e.message) + '</div>';
+  }
+}
+
+function blocColor(dominant) {
+  var map = { red_green: '#e8112d', blue: '#1b49dd', sd: '#dddd00', other: '#6b7280' };
+  return map[dominant] || '#6b7280';
+}
+
+function renderBlocSummary(summary, year, prevYear) {
+  var el = document.getElementById('blocSummary');
+  if (!el) return;
+  var items = [
+    { val: (summary.red_green_pct||0).toFixed(1)+'%', lbl: 'Rod-gron', color: '#e8112d' },
+    { val: (summary.blue_pct||0).toFixed(1)+'%', lbl: 'Bla', color: '#1b49dd' },
+    { val: (summary.sd_pct||0).toFixed(1)+'%', lbl: 'SD', color: '#dddd00' },
+    { val: (summary.c_pct||0).toFixed(1)+'%', lbl: 'C', color: '#00d97e' }
+  ];
+  el.innerHTML = items.map(function(i) {
+    return '<div class="bloc-stat"><div class="bloc-stat-val" style="color:' + i.color + '">' + i.val + '</div><div class="bloc-stat-lbl">' + i.lbl + '</div></div>';
+  }).join('');
+}
+
+function renderBlocTable(areas, tbody) {
+  if (!tbody) return;
+  if (!areas.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted)">' + t('no_bloc_data') + '</td></tr>'; return; }
+  tbody.innerHTML = areas.map(function(a) {
+    var color = blocColor(a.dominant_bloc);
+    var swingHtml = a.swing_from_previous
+      ? '<span class="badge" style="background:rgba(201,162,39,0.15);color:var(--accent)"><i class="fas fa-exchange-alt"></i> ' + a.swing_from_previous + ' → ' + a.dominant_bloc + '</span>'
+      : '<span style="color:var(--text-muted);font-size:.75rem">—</span>';
+    var rgSwing = parseFloat(a.rg_swing||0);
+    var blSwing = parseFloat(a.blue_swing||0);
+    return '<tr>' +
+      '<td style="font-weight:600">' + escapeHtml(a.area_name) + '</td>' +
+      '<td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:' + color + ';display:inline-block"></span>' + escapeHtml(a.dominant_bloc) + '</span></td>' +
+      '<td class="' + (rgSwing>0?'swing-pos':'swing-neg') + '">' + (a.red_green_pct||0).toFixed(1) + '% <span style="font-size:.72rem">(' + (rgSwing>=0?'+':'') + rgSwing.toFixed(1) + ')</span></td>' +
+      '<td class="' + (blSwing>0?'swing-pos':'swing-neg') + '">' + (a.blue_pct||0).toFixed(1) + '% <span style="font-size:.72rem">(' + (blSwing>=0?'+':'') + blSwing.toFixed(1) + ')</span></td>' +
+      '<td>' + (a.sd_pct||0).toFixed(1) + '%</td>' +
+      '<td>' + swingHtml + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function renderBlocMapLayer(areas) {
+  // Init bloc leaflet map if needed
+  var mapEl = document.getElementById('blocLeafletMap');
+  if (!mapEl) return;
+  if (!_blocMap) {
+    _blocMap = L.map('blocLeafletMap', { center: [62.5, 16.0], zoom: 4, zoomControl: true });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap',
+      subdomains: 'abcd', maxZoom: 10
+    }).addTo(_blocMap);
+  }
+  if (_blocGeoLayer) { _blocMap.removeLayer(_blocGeoLayer); _blocGeoLayer = null; }
+
+  // Build simple dot markers for each county based on bloc color
+  var group = L.featureGroup();
+  var countyLatLng = {
+    '01':[59.3,18.1],'03':[60.1,15.5],'04':[58.7,17.0],'05':[58.4,15.6],'06':[57.8,14.2],
+    '07':[56.8,14.8],'08':[57.0,16.2],'09':[57.0,18.3],'10':[55.6,13.8],'12':[56.0,13.0],
+    '13':[57.7,12.0],'14':[58.3,13.5],'17':[59.4,13.5],'18':[59.7,15.0],'19':[59.6,16.5],
+    '20':[60.7,17.1],'21':[61.3,16.5],'22':[62.4,17.3],'23':[63.8,20.3],'24':[65.6,19.0],
+    '25':[67.8,20.3]
+  };
+  areas.forEach(function(a) {
+    var ll = countyLatLng[a.area_code];
+    if (!ll) return;
+    var color = blocColor(a.dominant_bloc);
+    var r = L.circleMarker(ll, {
+      radius: 14,
+      color: '#1e2a3e',
+      fillColor: color,
+      fillOpacity: 0.85,
+      weight: 2
+    }).addTo(group);
+    var swingTxt = a.swing_from_previous ? ' (swing: ' + a.swing_from_previous + '→' + a.dominant_bloc + ')' : '';
+    r.bindPopup('<strong>' + escapeHtml(a.area_name) + '</strong>' + swingTxt +
+      '<br>Rod-gron: ' + (a.red_green_pct||0).toFixed(1) + '%' +
+      '<br>Bla: ' + (a.blue_pct||0).toFixed(1) + '%' +
+      '<br>SD: ' + (a.sd_pct||0).toFixed(1) + '%');
+  });
+  group.addTo(_blocMap);
+  _blocGeoLayer = group;
+  setTimeout(function() { _blocMap.invalidateSize(); }, 100);
+}
+
+window.loadBlocMap = loadBlocMap;
+window.showBlocTab = showBlocTab;
+
+// ═══════════════════════════════════════════════════════════
+// PHASE 4 FEATURE 3: VOLUNTEER PORTAL
+// ═══════════════════════════════════════════════════════════
+
+function showPortal() {
+  document.getElementById('portalView').classList.add('visible');
+  loadPortalCampaigns();
+}
+
+function hidePortal() {
+  document.getElementById('portalView').classList.remove('visible');
+}
+
+async function loadPortalCampaigns() {
+  var sel = document.getElementById('portalCampaignSel');
+  if (!sel) return;
+  try {
+    // Use direct fetch (no auth needed for portal)
+    var resp = await fetch('/val/api/portal/campaigns');
+    var data = await resp.json();
+    sel.innerHTML = '<option value="">-- Valj kampanj --</option>';
+    (data.data || []).forEach(function(c) {
+      sel.innerHTML += '<option value="' + c.id + '">' + escapeHtml(c.name) + '</option>';
+    });
+  } catch(e) {}
+}
+
+async function loadPortalShifts() {
+  var campId = document.getElementById('portalCampaignSel').value;
+  var section = document.getElementById('portalShiftsSection');
+  var empty = document.getElementById('portalEmptyState');
+  var cards = document.getElementById('portalShiftCards');
+  var nameEl = document.getElementById('portalCampaignName');
+
+  if (!campId) {
+    if (section) section.style.display = 'none';
+    if (empty) empty.style.display = 'none';
+    return;
+  }
+
+  var selEl = document.getElementById('portalCampaignSel');
+  var campName = selEl ? selEl.options[selEl.selectedIndex].text : '';
+  if (nameEl) nameEl.textContent = campName || t('portal_title');
+
+  try {
+    var resp = await fetch('/val/api/portal/shifts/' + campId);
+    var data = await resp.json();
+    var shifts = data.data || [];
+    if (shifts.length === 0) {
+      if (section) section.style.display = 'none';
+      if (empty) empty.style.display = '';
+    } else {
+      if (section) section.style.display = '';
+      if (empty) empty.style.display = 'none';
+      renderPortalShifts(shifts, cards);
+    }
+  } catch(e) {
+    if (empty) empty.style.display = '';
+  }
+}
+
+function renderPortalShifts(shifts, container) {
+  if (!container) return;
+  var typeIcons = { door_knock: 'fa-walking', phone: 'fa-phone', event: 'fa-calendar', leaflet: 'fa-newspaper', transport: 'fa-car' };
+  container.innerHTML = shifts.map(function(s) {
+    var spots = s.max_volunteers - s.current_volunteers;
+    var full = spots <= 0;
+    var pct = Math.min(100, Math.round((s.current_volunteers / s.max_volunteers) * 100));
+    var dt = s.start_time ? new Date(s.start_time).toLocaleString('sv-SE', {dateStyle:'short',timeStyle:'short'}) : '';
+    return '<div class="shift-card">' +
+      '<div class="shift-type-badge"><i class="fas ' + (typeIcons[s.shift_type]||'fa-calendar') + '"></i> ' + escapeHtml(s.shift_type||'') + '</div>' +
+      '<div class="shift-title">' + escapeHtml(s.title) + '</div>' +
+      (s.description ? '<div style="font-size:.8rem;color:var(--text-secondary);margin-bottom:8px">' + escapeHtml(s.description) + '</div>' : '') +
+      '<div class="shift-meta"><i class="fas fa-clock"></i> ' + escapeHtml(dt) + '</div>' +
+      (s.location ? '<div class="shift-meta"><i class="fas fa-map-pin"></i> ' + escapeHtml(s.location) + '</div>' : '') +
+      '<div class="shift-spots"><div class="shift-spots-bar" style="width:' + pct + '%"></div></div>' +
+      '<div class="shift-spots-label">' + (full ? '<span style="color:var(--opposition)">' + t('shift_full') + '</span>' : spots + ' ' + t('spots_remaining')) + '</div>' +
+      (!full ? '<button class="btn btn-primary btn-sm" style="width:100%;margin-top:10px" onclick="openShiftSignup(\'' + s.id + '\',\'' + escapeHtml(s.title.replace(/'/g,'')) + '\')"><i class="fas fa-user-plus"></i> ' + t('join_shift') + '</button>' : '') +
+      '</div>';
+  }).join('');
+}
+
+function openShiftSignup(shiftId, shiftTitle) {
+  document.getElementById('shiftSignupShiftId').value = shiftId;
+  document.getElementById('shiftSignupShiftInfo').innerHTML = '<i class="fas fa-calendar" style="color:var(--accent);margin-right:6px"></i><strong>' + escapeHtml(shiftTitle) + '</strong>';
+  openModal('shiftSignupModal');
+}
+
+async function submitPortalSignup(shiftId) {
+  var name = shiftId ? document.getElementById('shiftSignupName').value : document.getElementById('portalName').value;
+  var email = shiftId ? document.getElementById('shiftSignupEmail').value : document.getElementById('portalEmail').value;
+  var phone = shiftId ? document.getElementById('shiftSignupPhone').value : document.getElementById('portalPhone').value;
+  var langs = shiftId ? document.getElementById('shiftSignupLangs').value : document.getElementById('portalLangs').value;
+  var message = shiftId ? document.getElementById('shiftSignupMessage').value : document.getElementById('portalMessage').value;
+  var campId = document.getElementById('portalCampaignSel').value;
+
+  if (!name || !email) { showAlert(t('name_required'), 'error'); return; }
+
+  try {
+    var url = shiftId ? '/val/api/portal/shifts/' + shiftId + '/join' : '/val/api/portal/signup';
+    var resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, email: email, phone: phone, languages: langs ? langs.split(',').map(function(l){return l.trim();}) : [], message: message, shift_id: campId || null })
+    });
+    var data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Failed');
+
+    if (shiftId) {
+      closeModal('shiftSignupModal');
+    }
+    // Show confirmation
+    var confirm = document.getElementById('portalConfirm');
+    if (confirm) confirm.classList.add('visible');
+    // Reload shifts
+    loadPortalShifts();
+  } catch(e) {
+    showAlert(e.message, 'error');
+  }
+}
+
+// Admin volunteers
+async function loadAdminVolunteers() {
+  var status = (document.getElementById('adminVolStatus')||{}).value || '';
+  var tbody = document.getElementById('adminVolunteersBody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted)"><i class="fas fa-spinner fa-spin"></i></td></tr>';
+  try {
+    var url = '/admin/volunteers';
+    if (status) url += '?status=' + status;
+    var data = await apiFetch(url);
+    var rows = data.data || [];
+    if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted)">No signups yet</td></tr>'; return; }
+    tbody.innerHTML = rows.map(function(v) {
+      var statusClass = v.status === 'approved' ? 'badge-active' : v.status === 'declined' ? 'badge-opposition' : 'badge-unknown';
+      return '<tr>' +
+        '<td>' + escapeHtml(v.name) + '</td>' +
+        '<td><a href="mailto:' + escapeHtml(v.email) + '" style="color:var(--accent)">' + escapeHtml(v.email) + '</a></td>' +
+        '<td>' + escapeHtml(v.phone||'—') + '</td>' +
+        '<td>' + escapeHtml(v.shift_title||'—') + '</td>' +
+        '<td><span class="badge ' + statusClass + '">' + escapeHtml(v.status) + '</span></td>' +
+        '<td style="color:var(--text-muted);font-size:.75rem">' + (v.created_at ? v.created_at.substring(0,10) : '') + '</td>' +
+        '<td><div style="display:flex;gap:4px">' +
+          '<button class="btn btn-sm" style="background:rgba(34,197,94,0.12);color:var(--supporter);border:1px solid rgba(34,197,94,0.3)" onclick="updateVolStatus(\'' + v.id + '\',\'approved\')">Approve</button>' +
+          '<button class="btn btn-sm btn-danger" onclick="updateVolStatus(\'' + v.id + '\',\'declined\')">Decline</button>' +
+          '</div></td>' +
+        '</tr>';
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--opposition);padding:10px">' + escapeHtml(e.message) + '</td></tr>';
+  }
+}
+
+async function updateVolStatus(id, status) {
+  try {
+    await apiFetch('/admin/volunteers/' + id, { method: 'PUT', body: JSON.stringify({ status: status }) });
+    showAlert('Status updated', 'success');
+    loadAdminVolunteers();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+async function saveShift() {
+  var campId = document.getElementById('shiftCampaignSel').value;
+  var title = document.getElementById('shiftTitle').value;
+  var desc = document.getElementById('shiftDesc').value;
+  var type = document.getElementById('shiftType').value;
+  var maxVol = parseInt(document.getElementById('shiftMaxVol').value) || 5;
+  var loc = document.getElementById('shiftLocation').value;
+  var start = document.getElementById('shiftStartTime').value;
+  var end = document.getElementById('shiftEndTime').value;
+
+  if (!campId || !title || !start || !end) { showAlert(t('name_required'), 'error'); return; }
+  try {
+    await apiFetch('/admin/shifts', { method: 'POST', body: JSON.stringify({ campaign_id: campId, title: title, description: desc, shift_type: type, location: loc, start_time: start, end_time: end, max_volunteers: maxVol }) });
+    closeModal('createShiftModal');
+    showAlert('Shift created', 'success');
+    loadAdminVolunteers();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+function populateShiftCampaignSel() {
+  var sel = document.getElementById('shiftCampaignSel');
+  if (!sel) return;
+  apiFetch('/campaigns').then(function(d) {
+    sel.innerHTML = (d.data||[]).map(function(c) { return '<option value="' + c.id + '">' + escapeHtml(c.name) + '</option>'; }).join('');
+  }).catch(function(){});
+}
+
+window.showPortal = showPortal;
+window.hidePortal = hidePortal;
+window.loadPortalShifts = loadPortalShifts;
+window.openShiftSignup = openShiftSignup;
+window.submitPortalSignup = submitPortalSignup;
+window.loadAdminVolunteers = loadAdminVolunteers;
+window.updateVolStatus = updateVolStatus;
+window.saveShift = saveShift;
+
+// ═══════════════════════════════════════════════════════════
+// PHASE 4 FEATURE 4: VOLUNTEER JOURNEY & BADGES
+// ═══════════════════════════════════════════════════════════
+
+var BADGE_ICONS = {
+  first_contact:'fa-shoe-prints', caller_10:'fa-phone', door_knocker_10:'fa-door-open',
+  marathon:'fa-running', week_streak:'fa-fire', marathon_100:'fa-medal', legend:'fa-crown'
+};
+
+async function loadJourney() {
+  // Stats
+  try {
+    var statsData = await apiFetch('/volunteers/me/stats');
+    var s = statsData.data || {};
+    var jsEl = function(id, v) { var el = document.getElementById(id); if(el) el.textContent = v; };
+    jsEl('jsTotalContacts', s.total_contacts||0);
+    jsEl('jsTotalDoors', s.total_doors||0);
+    jsEl('jsTotalCalls', s.total_calls||0);
+    jsEl('jsStreak', s.current_streak||0);
+    jsEl('journeyXp', (s.xp||0) + ' XP');
+
+    var levelBadge = document.getElementById('journeyLevelBadge');
+    if (levelBadge) {
+      levelBadge.className = 'level-badge level-' + (s.level||'rookie');
+      var levelIcons = { rookie:'fa-star', active:'fa-bolt', veteran:'fa-shield-alt', coordinator:'fa-medal', legend:'fa-crown' };
+      levelBadge.innerHTML = '<i class="fas ' + (levelIcons[s.level]||'fa-star') + '"></i> ' + escapeHtml(t('level_'+(s.level||'rookie')) || s.level || 'Rookie');
+    }
+
+    var barEl = document.getElementById('journeyLevelBar');
+    if (barEl) barEl.style.width = (statsData.level_progress_pct||0) + '%';
+
+    var nextEl = document.getElementById('journeyNextLevel');
+    if (nextEl) nextEl.textContent = statsData.next_level ? t('level_'+statsData.next_level)||statsData.next_level : t('level_legend')||'Legend';
+
+    var xpNext = document.getElementById('journeyXpToNext');
+    if (xpNext) xpNext.textContent = statsData.xp_to_next > 0 ? (statsData.xp_to_next + ' XP till ' + (statsData.next_level||'')) : '';
+  } catch(e) { console.warn('Journey stats error', e); }
+
+  // Badges
+  try {
+    var badgeData = await apiFetch('/volunteers/me/badges');
+    renderJourneyBadges(badgeData.data || []);
+  } catch(e) {
+    var bg = document.getElementById('journeyBadgeGrid');
+    if (bg) bg.innerHTML = '<div class="empty-state" style="padding:24px;grid-column:1/-1"><i class="fas fa-lock"></i><p style="margin-top:8px">Log in to see badges</p></div>';
+  }
+
+  // Leaderboard
+  try {
+    var lbData = await apiFetch('/volunteers/leaderboard');
+    renderLeaderboard(lbData.data || []);
+  } catch(e) {}
+
+  // Activity
+  try {
+    var actData = await apiFetch('/volunteers/me/activity');
+    renderJourneyActivity(actData.data || []);
+  } catch(e) {}
+}
+
+function renderJourneyBadges(badges) {
+  var grid = document.getElementById('journeyBadgeGrid');
+  if (!grid) return;
+  if (!badges.length) {
+    grid.innerHTML = '<div class="empty-state" style="padding:24px;grid-column:1/-1"><i class="fas fa-medal" style="font-size:2rem;opacity:.3"></i><p style="margin-top:8px" data-t="badges">Inga marken annu</p></div>';
+    return;
+  }
+  grid.innerHTML = badges.map(function(b) {
+    var cls = b.earned ? 'badge-item earned' : 'badge-item locked';
+    var icon = b.icon || BADGE_ICONS[b.type] || 'fa-star';
+    var earnedTxt = b.earned_at ? new Date(b.earned_at).toLocaleDateString('sv-SE') : '';
+    return '<div class="' + cls + '" title="' + escapeHtml(b.name_en||b.name) + (earnedTxt ? ' (' + earnedTxt + ')' : '') + '">' +
+      '<i class="fas ' + icon + '"></i>' +
+      '<div class="badge-item-name">' + escapeHtml(b.name) + '</div>' +
+      '<div class="badge-item-xp">+' + (b.xp||0) + ' XP</div>' +
+      '</div>';
+  }).join('');
+}
+
+function renderLeaderboard(items) {
+  var el = document.getElementById('journeyLeaderboard');
+  if (!el) return;
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:24px"><i class="fas fa-trophy" style="font-size:1.5rem;opacity:.3"></i><p style="margin-top:8px">Inga data annu</p></div>';
+    return;
+  }
+  el.innerHTML = items.map(function(v, i) {
+    var rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    return '<div class="leaderboard-row">' +
+      '<div class="leaderboard-rank ' + rankClass + '">' + (i+1) + '</div>' +
+      '<div class="leaderboard-name">' + escapeHtml(v.name||v.email||'?') + '</div>' +
+      '<div><span class="level-badge level-' + (v.level||'rookie') + '" style="font-size:.65rem;padding:2px 8px">' + escapeHtml(v.level||'rookie') + '</span></div>' +
+      '<div class="leaderboard-xp">' + (v.xp||0) + ' XP</div>' +
+      '</div>';
+  }).join('');
+}
+
+function renderJourneyActivity(contacts) {
+  var el = document.getElementById('journeyActivity');
+  if (!el) return;
+  if (!contacts.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:24px"><i class="fas fa-history" style="font-size:1.5rem;opacity:.3"></i><p style="margin-top:8px" data-t="no_contacts">Inga aktiviteter</p></div>';
+    return;
+  }
+  var outcomeColors = { supporter:'var(--supporter)', soft_yes:'var(--soft-yes)', opposition:'var(--opposition)', undecided:'var(--text-muted)', no_answer:'var(--no-answer)', invalid:'var(--invalid)' };
+  el.innerHTML = contacts.map(function(c) {
+    var col = outcomeColors[c.outcome] || 'var(--text-muted)';
+    var dt = c.created_at ? new Date(c.created_at).toLocaleString('sv-SE',{dateStyle:'short',timeStyle:'short'}) : '';
+    return '<div class="timeline-item">' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+      '<span style="width:8px;height:8px;border-radius:50%;background:' + col + ';flex-shrink:0"></span>' +
+      '<span style="font-weight:500">' + escapeHtml(c.voter_name||'Voter') + '</span>' +
+      '<span class="badge badge-' + escapeHtml(c.outcome) + '" style="margin-left:auto">' + escapeHtml(c.outcome||'') + '</span>' +
+      '</div>' +
+      '<div class="timeline-meta">' + escapeHtml(c.contact_type||'') + (c.postcode ? ' · ' + escapeHtml(c.postcode) : '') + ' · ' + dt + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+window.loadJourney = loadJourney;
+
+// ═══ ADMIN TAB: load volunteers when tab activated ═══
+var _origShowAdminTab = window.showAdminTab;
+window.showAdminTab = function(tab) {
+  if (_origShowAdminTab) _origShowAdminTab(tab);
+  if (tab === 'volunteers') {
+    loadAdminVolunteers();
+    populateShiftCampaignSel();
+  }
+};
+
+// ═══ NAVIGATE HOOK (Phase 4: Journey + Bloc combined) ═══
+var _origNavP4 = window.navigateTo;
+window.navigateTo = function(page) {
+  if (_origNavP4) _origNavP4(page);
+  if (page === 'journey') setTimeout(loadJourney, 200);
+  if (page === 'results') setTimeout(loadBlocMap, 400);
+};
+
+// ═══ PORTAL URL DETECTION ═══
+(function checkPortalUrl() {
+  if (window.location.pathname === '/val/portal' || window.location.hash === '#portal') {
+    document.addEventListener('DOMContentLoaded', function() {
+      showPortal();
+    });
+    if (document.readyState !== 'loading') showPortal();
+  }
+})();
 
 // ═══ UTILITIES ═══
 function escapeHtml(s){

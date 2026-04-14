@@ -1878,6 +1878,532 @@ app.get(BASE + '/api/areas/similar/:areaCode', function(req, res) {
   }
 });
 
+// ═══════════════════════════════════════════════════════════
+// PHASE 4 FEATURE 1: CAMPAIGN PLAYBACK TIMELINE
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/campaigns/:id/timeline
+app.get(BASE + '/api/campaigns/:id/timeline', function(req, res) {
+  try {
+    var campaignId = req.params.id;
+
+    // Get contacts grouped by date with district location data
+    var rows = db.prepare(`
+      SELECT
+        date(c.created_at) as contact_date,
+        COALESCE(vd.code, 'UNKNOWN') as district_code,
+        vd.name as district_name,
+        c.outcome,
+        COUNT(*) as contact_count,
+        AVG(COALESCE(c.location_lat, pc.latitude)) as lat,
+        AVG(COALESCE(c.location_lng, pc.longitude)) as lng
+      FROM contacts c
+      JOIN voters v ON v.id = c.voter_id
+      LEFT JOIN voting_districts vd ON vd.id = v.district_id
+      LEFT JOIN municipalities m ON m.id = v.municipality_id
+      LEFT JOIN (
+        SELECT DISTINCT postcode, latitude, longitude FROM postcodes WHERE latitude IS NOT NULL
+      ) pc ON pc.postcode = v.postcode
+      WHERE c.campaign_id = ?
+      GROUP BY date(c.created_at), vd.code, c.outcome
+      ORDER BY contact_date, district_code
+    `).all(campaignId);
+
+    // Gather all unique dates
+    var dateSet = {};
+    rows.forEach(function(r) { dateSet[r.contact_date] = true; });
+    var dates = Object.keys(dateSet).sort();
+
+    // Build activity array
+    var activityMap = {};
+    rows.forEach(function(r) {
+      var key = r.contact_date + '|' + r.district_code;
+      if (!activityMap[key]) {
+        activityMap[key] = {
+          date: r.contact_date,
+          district_code: r.district_code,
+          district_name: r.district_name || r.district_code,
+          lat: r.lat || null,
+          lng: r.lng || null,
+          contact_count: 0,
+          outcomes: {}
+        };
+      }
+      activityMap[key].contact_count += r.contact_count;
+      activityMap[key].outcomes[r.outcome] = (activityMap[key].outcomes[r.outcome] || 0) + r.contact_count;
+    });
+
+    var activity = Object.values(activityMap).sort(function(a, b) {
+      return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
+    });
+
+    res.json({ dates: dates, activity: activity, total_contacts: rows.reduce(function(s,r){ return s + r.contact_count; }, 0) });
+  } catch (err) {
+    console.error('Timeline error:', err);
+    res.status(500).json({ error: 'Failed to get campaign timeline' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// PHASE 4 FEATURE 2: PARTY BLOC ANALYTICS
+// ═══════════════════════════════════════════════════════════
+
+var RED_GREEN = ['S','V','MP'];
+var BLUE_BLOC = ['M','KD','L'];
+
+function computeBlocData(results) {
+  var rgPct = 0, bluePct = 0, sdPct = 0, cPct = 0, totalPct = 0;
+  results.forEach(function(r) {
+    var pct = r.vote_percentage || 0;
+    totalPct += pct;
+    if (RED_GREEN.indexOf(r.party_code) >= 0) rgPct += pct;
+    else if (BLUE_BLOC.indexOf(r.party_code) >= 0) bluePct += pct;
+    else if (r.party_code === 'SD') sdPct += pct;
+    else if (r.party_code === 'C') cPct += pct;
+  });
+  var dominant = 'other';
+  var maxPct = Math.max(rgPct, bluePct, sdPct);
+  if (maxPct === rgPct && rgPct > 0) dominant = 'red_green';
+  else if (maxPct === bluePct && bluePct > 0) dominant = 'blue';
+  else if (maxPct === sdPct && sdPct > 0) dominant = 'sd';
+  return { red_green_pct: rgPct, blue_pct: bluePct, sd_pct: sdPct, c_pct: cPct, dominant_bloc: dominant };
+}
+
+// GET /api/analytics/bloc-map?year=2022
+app.get(BASE + '/api/analytics/bloc-map', function(req, res) {
+  try {
+    var year = parseInt(req.query.year) || 2022;
+    var prevYear = year === 2022 ? 2018 : 2014;
+
+    var currentResults = db.prepare(`
+      SELECT county_code as area_code, party_code, vote_percentage
+      FROM election_results
+      WHERE election_year = ? AND election_type = 'riksdag' AND level = 'county' AND county_code IS NOT NULL
+      ORDER BY county_code, votes DESC
+    `).all(year);
+
+    var prevResults = db.prepare(`
+      SELECT county_code as area_code, party_code, vote_percentage
+      FROM election_results
+      WHERE election_year = ? AND election_type = 'riksdag' AND level = 'county' AND county_code IS NOT NULL
+      ORDER BY county_code, votes DESC
+    `).all(prevYear);
+
+    var counties = db.prepare('SELECT code, name FROM counties').all();
+
+    // Group by area
+    function groupByArea(rows) {
+      var map = {};
+      rows.forEach(function(r) {
+        if (!map[r.area_code]) map[r.area_code] = [];
+        map[r.area_code].push(r);
+      });
+      return map;
+    }
+
+    var curMap = groupByArea(currentResults);
+    var prevMap = groupByArea(prevResults);
+
+    var areas = [];
+    counties.forEach(function(c) {
+      var cur = computeBlocData(curMap[c.code] || []);
+      var prev = computeBlocData(prevMap[c.code] || []);
+      var swingFrom = null;
+      if (prev.dominant_bloc !== cur.dominant_bloc) {
+        swingFrom = prev.dominant_bloc;
+      }
+      areas.push(Object.assign({
+        area_code: c.code,
+        area_name: c.name,
+        swing_from_previous: swingFrom,
+        rg_swing: (cur.red_green_pct - prev.red_green_pct).toFixed(1),
+        blue_swing: (cur.blue_pct - prev.blue_pct).toFixed(1),
+        sd_swing: (cur.sd_pct - prev.sd_pct).toFixed(1)
+      }, cur));
+    });
+
+    // Summary totals (nationwide weighted avg by first available)
+    var allCur = computeBlocData(currentResults);
+    res.json({ year: year, prev_year: prevYear, areas: areas, summary: allCur });
+  } catch (err) {
+    console.error('Bloc map error:', err);
+    res.status(500).json({ error: 'Failed to get bloc map data' });
+  }
+});
+
+// GET /api/analytics/bloc-history
+app.get(BASE + '/api/analytics/bloc-history', function(req, res) {
+  try {
+    var years = [2018, 2022];
+    var history = {};
+
+    years.forEach(function(year) {
+      var results = db.prepare(`
+        SELECT county_code as area_code, party_code, vote_percentage
+        FROM election_results
+        WHERE election_year = ? AND election_type = 'riksdag' AND level = 'county' AND county_code IS NOT NULL
+      `).all(year);
+
+      var byArea = {};
+      results.forEach(function(r) {
+        if (!byArea[r.area_code]) byArea[r.area_code] = [];
+        byArea[r.area_code].push(r);
+      });
+
+      history[year] = {};
+      Object.keys(byArea).forEach(function(code) {
+        history[year][code] = computeBlocData(byArea[code]);
+      });
+    });
+
+    res.json({ years: years, history: history });
+  } catch (err) {
+    console.error('Bloc history error:', err);
+    res.status(500).json({ error: 'Failed to get bloc history' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// PHASE 4 FEATURE 3: VOLUNTEER SELF-SERVICE PORTAL
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/portal/campaigns — public, no auth required
+app.get(BASE + '/api/portal/campaigns', function(req, res) {
+  try {
+    var campaigns = db.prepare(`
+      SELECT id, name, election_type, election_date, party, description, status
+      FROM campaigns WHERE status = 'active'
+      ORDER BY created_at DESC
+    `).all();
+    res.json({ data: campaigns });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get campaigns' });
+  }
+});
+
+// POST /api/portal/signup — public volunteer registration
+app.post(BASE + '/api/portal/signup', function(req, res) {
+  try {
+    var { v4: uuidv4 } = require('uuid');
+    var { name, email, phone, languages, message, shift_id } = req.body;
+    if (!name || !email) return res.status(400).json({ error: 'name and email required' });
+
+    var id = uuidv4();
+    var langStr = Array.isArray(languages) ? JSON.stringify(languages) : (languages || null);
+    db.prepare(`INSERT INTO volunteer_signups (id, shift_id, name, email, phone, languages, message)
+      VALUES (?,?,?,?,?,?,?)`)
+      .run(id, shift_id || null, name, email, phone || null, langStr, message || null);
+
+    // Increment current_volunteers on shift if provided
+    if (shift_id) {
+      db.prepare(`UPDATE volunteer_shifts SET current_volunteers = current_volunteers + 1 WHERE id = ? AND current_volunteers < max_volunteers`)
+        .run(shift_id);
+    }
+
+    res.status(201).json({ message: 'Signup recorded', id: id });
+  } catch (err) {
+    console.error('Portal signup error:', err);
+    res.status(500).json({ error: 'Failed to record signup' });
+  }
+});
+
+// GET /api/portal/shifts/:campaignId — public, list available shifts
+app.get(BASE + '/api/portal/shifts/:campaignId', function(req, res) {
+  try {
+    var shifts = db.prepare(`
+      SELECT * FROM volunteer_shifts
+      WHERE campaign_id = ? AND status = 'open' AND start_time > datetime('now')
+      ORDER BY start_time ASC
+    `).all(req.params.campaignId);
+    res.json({ data: shifts });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get shifts' });
+  }
+});
+
+// POST /api/portal/shifts/:shiftId/join
+app.post(BASE + '/api/portal/shifts/:shiftId/join', function(req, res) {
+  try {
+    var shift = db.prepare('SELECT * FROM volunteer_shifts WHERE id = ?').get(req.params.shiftId);
+    if (!shift) return res.status(404).json({ error: 'Shift not found' });
+    if (shift.current_volunteers >= shift.max_volunteers) return res.status(400).json({ error: 'Shift is full' });
+
+    var { v4: uuidv4 } = require('uuid');
+    var { name, email, phone, languages, message } = req.body;
+    if (!name || !email) return res.status(400).json({ error: 'name and email required' });
+
+    var id = uuidv4();
+    var langStr = Array.isArray(languages) ? JSON.stringify(languages) : (languages || null);
+    db.prepare(`INSERT INTO volunteer_signups (id, shift_id, name, email, phone, languages, message)
+      VALUES (?,?,?,?,?,?,?)`)
+      .run(id, req.params.shiftId, name, email, phone || null, langStr, message || null);
+
+    db.prepare('UPDATE volunteer_shifts SET current_volunteers = current_volunteers + 1 WHERE id = ?').run(req.params.shiftId);
+
+    res.status(201).json({ message: 'Joined shift', id: id });
+  } catch (err) {
+    console.error('Shift join error:', err);
+    res.status(500).json({ error: 'Failed to join shift' });
+  }
+});
+
+// GET /api/admin/volunteers — list signups (admin)
+app.get(BASE + '/api/admin/volunteers', function(req, res) {
+  try {
+    var { status, shift_id } = req.query;
+    var where = '1=1';
+    var params = [];
+    if (status) { where += ' AND vs.status = ?'; params.push(status); }
+    if (shift_id) { where += ' AND vs.shift_id = ?'; params.push(shift_id); }
+    var rows = db.prepare(`
+      SELECT vs.*, vsh.title as shift_title, vsh.start_time, vsh.shift_type, vsh.location
+      FROM volunteer_signups vs
+      LEFT JOIN volunteer_shifts vsh ON vsh.id = vs.shift_id
+      WHERE ${where}
+      ORDER BY vs.created_at DESC LIMIT 200
+    `).all(...params);
+    res.json({ data: rows, total: rows.length });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get volunteer signups' });
+  }
+});
+
+// PUT /api/admin/volunteers/:id — approve/decline
+app.put(BASE + '/api/admin/volunteers/:id', function(req, res) {
+  try {
+    var { status } = req.body;
+    if (!status || !['pending','approved','declined'].includes(status)) return res.status(400).json({ error: 'Invalid status' });
+    db.prepare("UPDATE volunteer_signups SET status = ? WHERE id = ?").run(status, req.params.id);
+    var updated = db.prepare('SELECT * FROM volunteer_signups WHERE id = ?').get(req.params.id);
+    res.json({ data: updated });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update volunteer' });
+  }
+});
+
+// POST /api/admin/shifts — create shift
+app.post(BASE + '/api/admin/shifts', function(req, res) {
+  try {
+    var { v4: uuidv4 } = require('uuid');
+    var { campaign_id, title, description, shift_type, location, district_code, start_time, end_time, max_volunteers } = req.body;
+    if (!campaign_id || !title || !start_time || !end_time) return res.status(400).json({ error: 'campaign_id, title, start_time, end_time required' });
+    var id = uuidv4();
+    db.prepare(`INSERT INTO volunteer_shifts (id, campaign_id, title, description, shift_type, location, district_code, start_time, end_time, max_volunteers)
+      VALUES (?,?,?,?,?,?,?,?,?,?)`)
+      .run(id, campaign_id, title, description || null, shift_type || 'door_knock', location || null, district_code || null, start_time, end_time, max_volunteers || 5);
+    res.status(201).json({ data: db.prepare('SELECT * FROM volunteer_shifts WHERE id = ?').get(id) });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create shift' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// PHASE 4 FEATURE 4: VOLUNTEER JOURNEY & BADGES
+// ═══════════════════════════════════════════════════════════
+
+var BADGE_DEFS = [
+  { type: 'first_contact',     name: 'Forsta steget',      name_en: 'First Step',         icon: 'fa-shoe-prints',  xp: 50,   check: function(s) { return s.total_contacts >= 1; } },
+  { type: 'caller_10',         name: 'Ringare',             name_en: 'Caller',             icon: 'fa-phone',        xp: 100,  check: function(s) { return s.total_calls >= 10; } },
+  { type: 'door_knocker_10',   name: 'Dorrknackare',        name_en: 'Door Knocker',       icon: 'fa-door-open',    xp: 100,  check: function(s) { return s.total_doors >= 10; } },
+  { type: 'marathon',          name: 'Marathonlopare',      name_en: 'Marathon',           icon: 'fa-running',      xp: 250,  check: function(s) { return s.total_contacts >= 50; } },
+  { type: 'week_streak',       name: 'Veckostreak',         name_en: 'Week Streak',        icon: 'fa-fire',         xp: 200,  check: function(s) { return s.current_streak >= 7; } },
+  { type: 'marathon_100',      name: 'Samordnare',          name_en: 'Coordinator',        icon: 'fa-medal',        xp: 500,  check: function(s, badges) { return s.total_contacts >= 100 && badges.length >= 3; } },
+  { type: 'legend',            name: 'Legend',              name_en: 'Legend',             icon: 'fa-crown',        xp: 1000, check: function(s, badges) { return s.total_contacts >= 500 && badges.length >= 8; } }
+];
+
+function getLevelFromXp(xp) {
+  if (xp >= 2000) return 'legend';
+  if (xp >= 800)  return 'coordinator';
+  if (xp >= 350)  return 'veteran';
+  if (xp >= 100)  return 'active';
+  return 'rookie';
+}
+
+function getXpForLevel(level) {
+  var map = { rookie: 0, active: 100, veteran: 350, coordinator: 800, legend: 2000 };
+  return map[level] || 0;
+}
+
+function awardBadgesForUser(userId) {
+  try {
+    var stats = db.prepare('SELECT * FROM volunteer_stats WHERE user_id = ?').get(userId);
+    if (!stats) return;
+
+    var existingBadges = db.prepare('SELECT badge_type FROM volunteer_badges WHERE user_id = ?').all(userId);
+    var earned = existingBadges.map(function(b) { return b.badge_type; });
+
+    var { v4: uuidv4 } = require('uuid');
+    var newXp = stats.xp || 0;
+
+    BADGE_DEFS.forEach(function(def) {
+      if (earned.indexOf(def.type) >= 0) return; // already earned
+      if (def.check(stats, existingBadges)) {
+        db.prepare('INSERT INTO volunteer_badges (id, user_id, badge_type, badge_name, badge_icon) VALUES (?,?,?,?,?)')
+          .run(uuidv4(), userId, def.type, def.name, def.icon);
+        newXp += def.xp;
+        earned.push(def.type);
+      }
+    });
+
+    var newLevel = getLevelFromXp(newXp);
+    db.prepare("UPDATE volunteer_stats SET xp = ?, level = ?, updated_at = datetime('now') WHERE user_id = ?")
+      .run(newXp, newLevel, userId);
+  } catch(e) {
+    console.error('Badge award error:', e);
+  }
+}
+
+function updateVolunteerStats(userId, contactType) {
+  try {
+    var { v4: uuidv4 } = require('uuid');
+    var existing = db.prepare('SELECT * FROM volunteer_stats WHERE user_id = ?').get(userId);
+
+    if (!existing) {
+      db.prepare(`INSERT INTO volunteer_stats (id, user_id, total_contacts, total_doors, total_calls, last_activity_at)
+        VALUES (?,?,1,?,?,datetime('now'))`)
+        .run(uuidv4(), userId, contactType === 'door' ? 1 : 0, contactType === 'phone' ? 1 : 0);
+    } else {
+      var doorInc = contactType === 'door' ? 1 : 0;
+      var callInc = contactType === 'phone' ? 1 : 0;
+
+      // Streak logic
+      var now = new Date();
+      var lastActivity = existing.last_activity_at ? new Date(existing.last_activity_at) : null;
+      var streak = existing.current_streak || 0;
+      if (lastActivity) {
+        var diffDays = Math.floor((now - lastActivity) / 86400000);
+        if (diffDays === 0) { /* same day, no streak change */ }
+        else if (diffDays === 1) { streak += 1; }
+        else { streak = 1; }
+      } else {
+        streak = 1;
+      }
+      var longest = Math.max(existing.longest_streak || 0, streak);
+
+      db.prepare(`UPDATE volunteer_stats SET
+        total_contacts = total_contacts + 1,
+        total_doors = total_doors + ?,
+        total_calls = total_calls + ?,
+        current_streak = ?,
+        longest_streak = ?,
+        last_activity_at = datetime('now')
+        WHERE user_id = ?`)
+        .run(doorInc, callInc, streak, longest, userId);
+    }
+
+    awardBadgesForUser(userId);
+  } catch(e) {
+    console.error('updateVolunteerStats error:', e);
+  }
+}
+
+function getVolunteerUserId(req) {
+  try {
+    var jwt = require('jsonwebtoken');
+    var token = (req.headers.authorization || '').replace('Bearer ', '');
+    var payload = jwt.verify(token, process.env.JWT_SECRET);
+    return payload.userId || null;
+  } catch(e) { return null; }
+}
+
+// GET /api/volunteers/me/stats
+app.get(BASE + '/api/volunteers/me/stats', function(req, res) {
+  try {
+    var userId = getVolunteerUserId(req);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    var stats = db.prepare('SELECT * FROM volunteer_stats WHERE user_id = ?').get(userId);
+    if (!stats) {
+      stats = { user_id: userId, total_contacts: 0, total_doors: 0, total_calls: 0, total_events: 0, total_hours: 0, current_streak: 0, longest_streak: 0, level: 'rookie', xp: 0, last_activity_at: null };
+    }
+
+    var nextLevel = { rookie: 'active', active: 'veteran', veteran: 'coordinator', coordinator: 'legend', legend: null };
+    var nextLevelName = nextLevel[stats.level] || null;
+    var curXpNeeded = getXpForLevel(stats.level);
+    var nextXpNeeded = nextLevelName ? getXpForLevel(nextLevelName) : null;
+    var progress = nextXpNeeded ? Math.min(100, Math.round(((stats.xp - curXpNeeded) / (nextXpNeeded - curXpNeeded)) * 100)) : 100;
+
+    res.json({ data: stats, next_level: nextLevelName, xp_to_next: nextXpNeeded ? (nextXpNeeded - stats.xp) : 0, level_progress_pct: progress });
+  } catch(err) {
+    res.status(500).json({ error: 'Failed to get volunteer stats' });
+  }
+});
+
+// GET /api/volunteers/me/badges
+app.get(BASE + '/api/volunteers/me/badges', function(req, res) {
+  try {
+    var userId = getVolunteerUserId(req);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    var earned = db.prepare('SELECT * FROM volunteer_badges WHERE user_id = ? ORDER BY earned_at DESC').all(userId);
+    var earnedTypes = earned.map(function(b) { return b.badge_type; });
+
+    var all = BADGE_DEFS.map(function(def) {
+      var earnedBadge = earned.find(function(b) { return b.badge_type === def.type; });
+      return {
+        type: def.type,
+        name: def.name,
+        name_en: def.name_en,
+        icon: def.icon,
+        xp: def.xp,
+        earned: !!earnedBadge,
+        earned_at: earnedBadge ? earnedBadge.earned_at : null
+      };
+    });
+
+    res.json({ data: all, earned_count: earnedTypes.length, total: BADGE_DEFS.length });
+  } catch(err) {
+    res.status(500).json({ error: 'Failed to get badges' });
+  }
+});
+
+// GET /api/volunteers/leaderboard
+app.get(BASE + '/api/volunteers/leaderboard', function(req, res) {
+  try {
+    var rows = db.prepare(`
+      SELECT vs.*, u.name, u.email
+      FROM volunteer_stats vs
+      JOIN users u ON u.id = vs.user_id
+      ORDER BY vs.xp DESC LIMIT 10
+    `).all();
+    res.json({ data: rows });
+  } catch(err) {
+    res.status(500).json({ error: 'Failed to get leaderboard' });
+  }
+});
+
+// GET /api/volunteers/me/activity - recent contacts by current user
+app.get(BASE + '/api/volunteers/me/activity', function(req, res) {
+  try {
+    var userId = getVolunteerUserId(req);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    var activity = db.prepare(`
+      SELECT c.*, v.full_name as voter_name, v.postcode
+      FROM contacts c
+      LEFT JOIN voters v ON v.id = c.voter_id
+      WHERE c.agent_id = ?
+      ORDER BY c.created_at DESC LIMIT 20
+    `).all(userId);
+    res.json({ data: activity });
+  } catch(err) {
+    res.status(500).json({ error: 'Failed to get activity' });
+  }
+});
+
+// Hook into the existing contact logging to update volunteer stats
+// Monkey-patch the /api/contacts route results by wrapping the response —
+// instead, handle via a dedicated endpoint that is called alongside contact logging.
+// The contacts route already creates contacts; we use a lightweight middleware hook via:
+app.use(BASE + '/api/contacts', function(req, res, next) {
+  var _json = res.json.bind(res);
+  res.json = function(data) {
+    if (req.method === 'POST' && data && data.data && data.data.agent_id) {
+      var contactType = (data.data.contact_type === 'door') ? 'door' : 'phone';
+      updateVolunteerStats(data.data.agent_id, contactType);
+    }
+    return _json(data);
+  };
+  next();
+});
+
 // SPA fallback
 app.get(BASE + '/*', (req, res) => {
   if (req.path.startsWith(BASE + '/api/')) return res.status(404).json({ error: 'Not found' });

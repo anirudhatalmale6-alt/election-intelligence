@@ -471,4 +471,65 @@ try {
   db.exec('CREATE INDEX IF NOT EXISTS idx_voter_actions_campaign ON voter_actions(campaign_id)');
 } catch(e) {}
 
+// ═══ PHASE 4: VOLUNTEER PORTAL ═══
+try { db.exec(`CREATE TABLE IF NOT EXISTS volunteer_shifts (
+  id TEXT PRIMARY KEY,
+  campaign_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  shift_type TEXT DEFAULT 'door_knock',
+  location TEXT,
+  district_code TEXT,
+  start_time TEXT NOT NULL,
+  end_time TEXT NOT NULL,
+  max_volunteers INTEGER DEFAULT 5,
+  current_volunteers INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'open',
+  created_at TEXT DEFAULT (datetime('now'))
+)`); } catch(e) {}
+
+try { db.exec(`CREATE TABLE IF NOT EXISTS volunteer_signups (
+  id TEXT PRIMARY KEY,
+  shift_id TEXT,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT,
+  languages TEXT,
+  message TEXT,
+  status TEXT DEFAULT 'pending',
+  created_at TEXT DEFAULT (datetime('now'))
+)`); } catch(e) {}
+
+// ═══ PHASE 4: VOLUNTEER JOURNEY & BADGES ═══
+try { db.exec(`CREATE TABLE IF NOT EXISTS volunteer_badges (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  badge_type TEXT NOT NULL,
+  badge_name TEXT NOT NULL,
+  badge_icon TEXT,
+  earned_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+)`); } catch(e) {}
+
+try { db.exec(`CREATE TABLE IF NOT EXISTS volunteer_stats (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL UNIQUE,
+  total_contacts INTEGER DEFAULT 0,
+  total_doors INTEGER DEFAULT 0,
+  total_calls INTEGER DEFAULT 0,
+  total_events INTEGER DEFAULT 0,
+  total_hours REAL DEFAULT 0,
+  current_streak INTEGER DEFAULT 0,
+  longest_streak INTEGER DEFAULT 0,
+  level TEXT DEFAULT 'rookie',
+  xp INTEGER DEFAULT 0,
+  last_activity_at TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+)`); } catch(e) {}
+
+try { db.exec('CREATE INDEX IF NOT EXISTS idx_vol_badges_user ON volunteer_badges(user_id)'); } catch(e) {}
+try { db.exec('CREATE INDEX IF NOT EXISTS idx_vol_stats_user ON volunteer_stats(user_id)'); } catch(e) {}
+try { db.exec('CREATE INDEX IF NOT EXISTS idx_vol_signups_shift ON volunteer_signups(shift_id)'); } catch(e) {}
+try { db.exec('CREATE INDEX IF NOT EXISTS idx_vol_shifts_campaign ON volunteer_shifts(campaign_id)'); } catch(e) {}
+
 module.exports = db;
