@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Valintelligens — Election Intelligence Platform</title>
+<title>Val — Election Intelligence Platform</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -214,8 +214,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <div class="login-brand">
-      <div class="login-brand-icon">VI</div>
-      <h1 id="loginTitle">Valintelligens</h1>
+      <div class="login-brand-icon">V</div>
+      <h1 id="loginTitle">Val</h1>
       <p id="loginSubtitle">AI-driven valanalys for Sverige</p>
     </div>
     <div class="login-card">
@@ -238,9 +238,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
 <!-- ═══ SIDEBAR ═══ -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-brand">
-    <div class="brand-icon">VI</div>
+    <div class="brand-icon">V</div>
     <div>
-      <div class="brand-text">Valintelligens</div>
+      <div class="brand-text">Val</div>
       <div class="brand-sub">Election Intelligence</div>
     </div>
   </div>
@@ -860,7 +860,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
 'use strict';
 
 // ═══ CONFIG ═══
-var API_BASE = '/election/api';
+var API_BASE = '/val/api';
 var TOKEN_KEY = 'election_token';
 var currentUser = null;
 var currentLang = localStorage.getItem('election_lang') || 'sv';
@@ -895,7 +895,7 @@ var T = {
     contact_history:'Kontakthistorik',no_contacts:'Inga kontakter annu',
     election_results:'Valresultat',vote_share:'Rostfordelning',seats:'Mandat',
     lbl_email:'E-post',lbl_password:'Losenord',lbl_login:'Logga in',
-    login_title:'Valintelligens',login_sub:'AI-driven valanalys for Sverige',
+    login_title:'Val',login_sub:'AI-driven valanalys for Sverige',
     my_profile:'Min profil',security:'Sakerhet',activity_log:'Aktivitetslogg',
     profile_info:'Profilinformation',phone_number:'Telefon',organization:'Organisation',
     preferences:'Installningar',language:'Sprak',default_map_region:'Standardregion',timezone:'Tidszon',save:'Spara',
@@ -923,7 +923,7 @@ var T = {
     contact_history:'Contact History',no_contacts:'No contacts yet',
     election_results:'Election Results',vote_share:'Vote Share',seats:'Seats',
     lbl_email:'Email',lbl_password:'Password',lbl_login:'Log in',
-    login_title:'Election Intelligence',login_sub:'AI-driven election analytics',
+    login_title:'Val',login_sub:'AI-driven election analytics',
     my_profile:'My Profile',security:'Security',activity_log:'Activity Log',
     profile_info:'Profile Information',phone_number:'Phone',organization:'Organization',
     preferences:'Preferences',language:'Language',default_map_region:'Default Region',timezone:'Timezone',save:'Save',
@@ -951,7 +951,7 @@ var T = {
     contact_history:'Sampark Itihas',no_contacts:'Koi sampark nahi',
     election_results:'Chunav Parinaam',vote_share:'Vote Hissa',seats:'Seaten',
     lbl_email:'Email',lbl_password:'Password',lbl_login:'Login',
-    login_title:'Chunav Intelligence',login_sub:'AI-sanchaalit chunav vishleshan',
+    login_title:'Val',login_sub:'AI-sanchaalit chunav vishleshan',
     my_profile:'Meri Profile',security:'Suraksha',activity_log:'Gatividhi Log',
     profile_info:'Profile Jaankaari',phone_number:'Phone',organization:'Sangathan',
     preferences:'Pasand',language:'Bhasha',default_map_region:'Default Kshetra',timezone:'Samay Kshetra',save:'Save karein',
@@ -979,7 +979,7 @@ var T = {
     contact_history:'Raabte ki Tareekh',no_contacts:'Koi raabta nahi',
     election_results:'Intikhaabi Nataij',vote_share:'Vote ka hissa',seats:'Nashistein',
     lbl_email:'Email',lbl_password:'Password',lbl_login:'Login',
-    login_title:'Intikhaabi Intelligence',login_sub:'AI par mabni intikhaabi tahleel',
+    login_title:'Val',login_sub:'AI par mabni intikhaabi tahleel',
     my_profile:'Meri Profile',security:'Tahaffuz',activity_log:'Sargaarmi Log',
     profile_info:'Profile ki Maaloomaat',phone_number:'Phone',organization:'Tanzeem',
     preferences:'Pasand',language:'Zabaan',default_map_region:'Default Ilaaqa',timezone:'Waqt ka Ilaaqa',save:'Mehfooz karein',
@@ -1205,7 +1205,7 @@ async function loadMapData(){
     var results = await apiFetch('/map/results?year='+year+'&type='+type+'&level=county');
     // Try to load GeoJSON
     try {
-      var resp = await fetch('/election/data/sweden-counties.geojson');
+      var resp = await fetch('/val/data/sweden-counties.geojson');
       if(resp.ok){
         var geo = await resp.json();
         if(_geoLayer) _map.removeLayer(_geoLayer);
