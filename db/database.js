@@ -425,4 +425,43 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_smart_searches_campaign ON smart_searches(campaign_id);
 `);
 
+// ═══ FEATURE: LANGUAGE MATCHING ═══
+try { db.exec("ALTER TABLE users ADD COLUMN languages TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE users ADD COLUMN preferred_calling_language TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE voters ADD COLUMN language TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE voters ADD COLUMN language_source TEXT"); } catch(e) {}
+
+// ═══ FEATURE: FIELD AGENT BRIEFINGS ═══
+try {
+  db.exec(`CREATE TABLE IF NOT EXISTS field_briefings (
+    id TEXT PRIMARY KEY,
+    campaign_id TEXT NOT NULL,
+    area_code TEXT NOT NULL,
+    area_type TEXT NOT NULL,
+    title TEXT,
+    content TEXT,
+    generated_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+  )`);
+  db.exec('CREATE INDEX IF NOT EXISTS idx_briefings_campaign ON field_briefings(campaign_id)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_briefings_area ON field_briefings(area_code)');
+} catch(e) {}
+
+// ═══ FEATURE: VOTER ACTIONS ═══
+try {
+  db.exec(`CREATE TABLE IF NOT EXISTS voter_actions (
+    id TEXT PRIMARY KEY,
+    voter_id TEXT NOT NULL,
+    campaign_id TEXT NOT NULL,
+    action_type TEXT NOT NULL,
+    agent_id TEXT,
+    notes TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (voter_id) REFERENCES voters(id),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+  )`);
+  db.exec('CREATE INDEX IF NOT EXISTS idx_voter_actions_voter ON voter_actions(voter_id)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_voter_actions_campaign ON voter_actions(campaign_id)');
+} catch(e) {}
+
 module.exports = db;

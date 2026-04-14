@@ -676,6 +676,10 @@ app.get(BASE + '/api/call-queue/:campaignId', (req, res) => {
       excludeSubquery += ` AND (v.last_contacted_at IS NULL OR v.last_contacted_at < datetime('now', '-1 day'))`;
     }
 
+    // Exclude dequeued voters
+    excludeSubquery += ` AND (SELECT COUNT(*) FROM call_queue cq WHERE cq.voter_id = v.id AND cq.campaign_id = ? AND cq.status = 'dequeued') = 0`;
+    params.push(campaignId);
+
     params.push(batchSize);
 
     const voters = db.prepare(`
@@ -722,11 +726,33 @@ app.post(BASE + '/api/call-queue/complete', (req, res) => {
       updated_at = datetime('now')
       WHERE id = ?`)
       .run(outcome, outcome, voter_id);
-    // Mark any queue entry as completed
-    db.prepare(`UPDATE call_queue SET status = 'completed', outcome = ?, completed_at = datetime('now')
-      WHERE voter_id = ? AND campaign_id = ? AND status IN ('queued','in_progress')`)
-      .run(outcome, voter_id, campaign_id);
-    res.json({ message: 'Call completed', outcome });
+
+    // Check auto_stop_outcome rules — if outcome matches, dequeue voter
+    const autoStopRules = db.prepare("SELECT * FROM call_rules WHERE campaign_id = ? AND rule_type = 'auto_stop_outcome' AND is_active = 1").all(campaign_id);
+    const shouldDequeue = autoStopRules.some(r => r.rule_value === outcome);
+
+    if (shouldDequeue) {
+      // Dequeue voter — set status to 'dequeued' so they won't appear in future queue fetches
+      const existing = db.prepare("SELECT id FROM call_queue WHERE voter_id = ? AND campaign_id = ?").get(voter_id, campaign_id);
+      if (existing) {
+        db.prepare(`UPDATE call_queue SET status = 'dequeued', outcome = ?, completed_at = datetime('now')
+          WHERE voter_id = ? AND campaign_id = ? AND status IN ('queued','in_progress','completed')`)
+          .run(outcome, voter_id, campaign_id);
+      } else {
+        db.prepare("INSERT INTO call_queue (id, campaign_id, voter_id, status, outcome, completed_at) VALUES (?,?,?,'dequeued',?,datetime('now'))")
+          .run(uuidv4(), campaign_id, voter_id, outcome);
+      }
+      // Also update voter support_status to reflect the auto-deselect outcome
+      db.prepare("UPDATE voters SET support_status = ?, updated_at = datetime('now') WHERE id = ?")
+        .run(outcome, voter_id);
+    } else {
+      // Regular complete — mark queue entry done
+      db.prepare(`UPDATE call_queue SET status = 'completed', outcome = ?, completed_at = datetime('now')
+        WHERE voter_id = ? AND campaign_id = ? AND status IN ('queued','in_progress')`)
+        .run(outcome, voter_id, campaign_id);
+    }
+
+    res.json({ message: 'Call completed', outcome, dequeued: shouldDequeue });
   } catch (err) {
     console.error('Complete call error:', err);
     res.status(500).json({ error: 'Failed to complete call' });
@@ -970,6 +996,361 @@ app.get(BASE + '/api/smart-searches/:id/results', (req, res) => {
     console.error('Smart search results error:', err);
     res.status(500).json({ error: 'Failed to get results: ' + err.message });
   }
+});
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE: LANGUAGE-MATCHED CALLING
+// ═══════════════════════════════════════════════════════════
+
+// PUT /api/users/:id/languages - set user's spoken languages
+app.put(BASE + '/api/users/:id/languages', (req, res) => {
+  try {
+    var userId = req.params.id;
+    var user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    var { languages, preferred_calling_language } = req.body;
+    var langStr = Array.isArray(languages) ? JSON.stringify(languages) : (languages || null);
+    db.prepare("UPDATE users SET languages = ?, preferred_calling_language = ?, updated_at = datetime('now') WHERE id = ?")
+      .run(langStr, preferred_calling_language || null, userId);
+    var updated = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+    res.json({ data: updated });
+  } catch (err) {
+    console.error('Update user languages error:', err);
+    res.status(500).json({ error: 'Failed to update languages' });
+  }
+});
+
+// GET /api/call-queue/:campaignId/language-matched - language-prioritized queue
+app.get(BASE + '/api/call-queue/:campaignId/language-matched', (req, res) => {
+  try {
+    var campaignId = req.params.campaignId;
+    var userId = req.query.user_id;
+    var batchSize = parseInt(req.query.limit) || 20;
+
+    // Get caller's languages
+    var callerLanguages = [];
+    if (userId) {
+      var callerUser = db.prepare('SELECT languages FROM users WHERE id = ?').get(userId);
+      if (callerUser && callerUser.languages) {
+        try { callerLanguages = JSON.parse(callerUser.languages); } catch(e) {}
+      }
+    }
+
+    // Fetch active rules
+    var rules = db.prepare("SELECT * FROM call_rules WHERE campaign_id = ? AND is_active = 1").all(campaignId);
+    var ruleMap = {};
+    rules.forEach(function(r) { ruleMap[r.rule_type] = r.rule_value; });
+
+    // Quiet hours check
+    var quietStart = ruleMap['quiet_hours_start'] || '09:00';
+    var quietEnd = ruleMap['quiet_hours_end'] || '20:00';
+    var nowH = new Date().getHours();
+    var nowM = new Date().getMinutes();
+    var nowMins = nowH * 60 + nowM;
+    var qsParts = quietStart.split(':').map(Number);
+    var qeParts = quietEnd.split(':').map(Number);
+    var inQuiet = nowMins < (qsParts[0] * 60 + qsParts[1]) || nowMins >= (qeParts[0] * 60 + qeParts[1]);
+    if (inQuiet) {
+      return res.json({ data: [], quiet_hours: true, message: 'Calling allowed ' + quietStart + '\u2013' + quietEnd + ' only' });
+    }
+
+    var autoStopOutcome = ruleMap['auto_stop_outcome'] || null;
+    var maxTotal = ruleMap['max_total'] ? parseInt(ruleMap['max_total']) : null;
+    var maxPerWeek = ruleMap['max_per_week'] ? parseInt(ruleMap['max_per_week']) : null;
+    var requeueDays = ruleMap['requeue_days'] ? parseInt(ruleMap['requeue_days']) : null;
+
+    var excludeSubquery = '';
+    var params = [campaignId];
+
+    // Filter out dequeued voters
+    excludeSubquery += " AND (SELECT COUNT(*) FROM call_queue cq WHERE cq.voter_id = v.id AND cq.campaign_id = ? AND cq.status = 'dequeued') = 0";
+    params.push(campaignId);
+
+    if (autoStopOutcome) { excludeSubquery += ' AND v.support_status != ?'; params.push(autoStopOutcome); }
+    if (maxTotal !== null) { excludeSubquery += ' AND v.contact_count < ?'; params.push(maxTotal); }
+    if (maxPerWeek !== null) {
+      excludeSubquery += " AND (SELECT COUNT(*) FROM contacts c2 WHERE c2.voter_id = v.id AND c2.created_at > datetime('now', '-7 days')) < ?";
+      params.push(maxPerWeek);
+    }
+    if (requeueDays !== null) {
+      excludeSubquery += " AND (v.last_contacted_at IS NULL OR v.last_contacted_at < datetime('now', '-' || ? || ' days'))";
+      params.push(requeueDays);
+    } else {
+      excludeSubquery += " AND (v.last_contacted_at IS NULL OR v.last_contacted_at < datetime('now', '-1 day'))";
+    }
+
+    params.push(batchSize);
+
+    var voters = db.prepare(`
+      SELECT v.*,
+             (SELECT COUNT(*) FROM contacts c WHERE c.voter_id = v.id) as total_contacts_real
+      FROM voters v
+      WHERE v.campaign_id = ? ${excludeSubquery}
+        AND v.phone IS NOT NULL AND v.phone != ''
+      ORDER BY
+        CASE WHEN v.support_status = 'undecided' THEN 0
+             WHEN v.support_status = 'unknown' THEN 1
+             WHEN v.support_status = 'soft_yes' THEN 2
+             ELSE 3 END,
+        COALESCE(v.ai_priority_rank, 999),
+        v.contact_count ASC
+      LIMIT ?
+    `).all(...params);
+
+    // Sort language-matched voters to top
+    if (callerLanguages.length > 0) {
+      voters = voters.sort(function(a, b) {
+        var aMatch = a.language && callerLanguages.indexOf(a.language) >= 0 ? 0 : 1;
+        var bMatch = b.language && callerLanguages.indexOf(b.language) >= 0 ? 0 : 1;
+        return aMatch - bMatch;
+      });
+    }
+
+    res.json({ data: voters, rules_applied: ruleMap, caller_languages: callerLanguages });
+  } catch (err) {
+    console.error('Language matched queue error:', err);
+    res.status(500).json({ error: 'Failed to get language matched queue' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE: FIELD AGENT AI BRIEFINGS
+// ═══════════════════════════════════════════════════════════
+
+// POST /api/briefings/generate
+app.post(BASE + '/api/briefings/generate', async (req, res) => {
+  try {
+    var { area_code, area_type, campaign_id } = req.body;
+    if (!area_code || !area_type || !campaign_id) {
+      return res.status(400).json({ error: 'area_code, area_type, campaign_id required' });
+    }
+    var apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'AI service not configured (ANTHROPIC_API_KEY missing)' });
+
+    var { v4: uuidv4 } = require('uuid');
+
+    // Gather area demographics
+    var demographics = db.prepare(
+      "SELECT * FROM area_demographics WHERE area_code = ? AND area_type = ? ORDER BY data_year DESC LIMIT 1"
+    ).get(area_code, area_type);
+
+    // Gather election results
+    var results2022 = db.prepare(`
+      SELECT er.*, p.name as party_name FROM election_results er
+      LEFT JOIN parties p ON p.code = er.party_code
+      WHERE er.${area_type === 'county' ? 'county_code' : area_type === 'municipality' ? 'municipality_code' : 'district_code'} = ?
+        AND er.election_year = 2022 ORDER BY er.votes DESC LIMIT 10
+    `).all(area_code);
+
+    var results2018 = db.prepare(`
+      SELECT er.*, p.name as party_name FROM election_results er
+      LEFT JOIN parties p ON p.code = er.party_code
+      WHERE er.${area_type === 'county' ? 'county_code' : area_type === 'municipality' ? 'municipality_code' : 'district_code'} = ?
+        AND er.election_year = 2018 ORDER BY er.votes DESC LIMIT 10
+    `).all(area_code);
+
+    // Gather contact history
+    var contactStats = db.prepare(`
+      SELECT c.outcome, COUNT(*) as count
+      FROM contacts c
+      JOIN voters v ON v.id = c.voter_id
+      WHERE c.campaign_id = ?
+        AND (v.district_id IN (SELECT id FROM voting_districts WHERE code = ?)
+             OR v.municipality_id IN (SELECT id FROM municipalities WHERE code = ?))
+      GROUP BY c.outcome ORDER BY count DESC
+    `).all(campaign_id, area_code, area_code);
+
+    // Common issues from notes
+    var recentNotes = db.prepare(`
+      SELECT c.notes FROM contacts c
+      JOIN voters v ON v.id = c.voter_id
+      WHERE c.campaign_id = ? AND c.notes IS NOT NULL AND c.notes != ''
+        AND (v.district_id IN (SELECT id FROM voting_districts WHERE code = ?)
+             OR v.municipality_id IN (SELECT id FROM municipalities WHERE code = ?))
+      ORDER BY c.created_at DESC LIMIT 20
+    `).all(campaign_id, area_code, area_code);
+
+    // Call rules
+    var callRules = db.prepare("SELECT * FROM call_rules WHERE campaign_id = ? AND is_active = 1").all(campaign_id);
+
+    // Build context
+    var ctx = 'OMRADESDATA:\n';
+    ctx += 'Omradeskod: ' + area_code + ' (Typ: ' + area_type + ')\n\n';
+
+    if (demographics) {
+      ctx += 'DEMOGRAFI:\n';
+      if (demographics.population) ctx += '  Befolkning: ' + demographics.population + '\n';
+      if (demographics.median_age) ctx += '  Medianlder: ' + demographics.median_age + '\n';
+      if (demographics.median_income) ctx += '  Medianinkomst: ' + demographics.median_income + ' SEK\n';
+      if (demographics.foreign_born_pct) ctx += '  Utrikesfodda: ' + demographics.foreign_born_pct + '%\n';
+      if (demographics.higher_education_pct) ctx += '  Hogre utbildning: ' + demographics.higher_education_pct + '%\n';
+      if (demographics.unemployment_pct) ctx += '  Arbetsloshet: ' + demographics.unemployment_pct + '%\n';
+      ctx += '\n';
+    }
+
+    if (results2022.length > 0) {
+      ctx += 'VALRESULTAT 2022:\n';
+      results2022.forEach(function(r) { ctx += '  ' + r.party_code + ': ' + (r.vote_percentage || 0).toFixed(1) + '%\n'; });
+      ctx += '\n';
+    }
+    if (results2018.length > 0) {
+      ctx += 'VALRESULTAT 2018:\n';
+      results2018.forEach(function(r) { ctx += '  ' + r.party_code + ': ' + (r.vote_percentage || 0).toFixed(1) + '%\n'; });
+      ctx += '\n';
+    }
+
+    if (contactStats.length > 0) {
+      ctx += 'KAMPANJRESULTAT (kontakthistorik):\n';
+      contactStats.forEach(function(s) { ctx += '  ' + s.outcome + ': ' + s.count + ' kontakter\n'; });
+      ctx += '\n';
+    }
+
+    if (recentNotes.length > 0) {
+      ctx += 'SENASTE ANTECKNINGAR FRAN VALJAROKONTAKTER:\n';
+      recentNotes.slice(0, 10).forEach(function(n, i) { if (n.notes) ctx += '  ' + (i+1) + '. ' + n.notes + '\n'; });
+      ctx += '\n';
+    }
+
+    if (callRules.length > 0) {
+      ctx += 'AKTIVA SAMTALSREGLER:\n';
+      callRules.forEach(function(r) { ctx += '  ' + r.rule_type + ': ' + r.rule_value + '\n'; });
+    }
+
+    var prompt = `Du ar en erfaren faltsamordnare for en svensk valkampanj. Generera en kortfattad briefing for faltarbetare i detta omrade baserat pa foljande data.\n\n${ctx}\n\nBriefiingen ska innehalla dessa sektioner:\n1. **OMRADESOVERBLICK** - Kort beskrivning av omradets politiska profil och demografiska profil\n2. **NYCKELDEMOGRAFI** - De viktigaste demografiska fakta och vad de innebar for kampanjen\n3. **SAMTALSBUDSKAP** - 3-5 konkreta samtalsamnens anpassade till detta omrade\n4. **PRIORITERA DESSA VALJARE** - Vilka typer av valjare ska prioriteras och varfor\n5. **LOKALA FRAGOR** - Fragor och synpunkter som har kommit upp i kontakter\n6. **REKOMMENDERAT TILLVAGAGANGSSATT** - Praktiska rad for faltarbetet\n\nSvara pa svenska. Var konkret och handlingsorienterad. Max 500 ord totalt.`;
+
+    var https = require('https');
+    var bodyData = JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1500,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    var briefingContent = await new Promise(function(resolve, reject) {
+      var options = {
+        hostname: 'api.anthropic.com',
+        path: '/v1/messages',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'Content-Length': Buffer.byteLength(bodyData)
+        }
+      };
+      var reqHttp = https.request(options, function(response) {
+        var data = '';
+        response.on('data', function(chunk) { data += chunk; });
+        response.on('end', function() {
+          try {
+            var parsed = JSON.parse(data);
+            var text = parsed.content && parsed.content[0] ? parsed.content[0].text : 'Briefing ej tillganglig.';
+            resolve(text);
+          } catch(e) { reject(new Error('Failed to parse AI response')); }
+        });
+      });
+      reqHttp.on('error', reject);
+      reqHttp.write(bodyData);
+      reqHttp.end();
+    });
+
+    // Store briefing
+    var briefingId = uuidv4();
+    var title = 'Briefing: ' + area_code + ' (' + new Date().toLocaleDateString('sv-SE') + ')';
+    db.prepare('INSERT INTO field_briefings (id, campaign_id, area_code, area_type, title, content) VALUES (?,?,?,?,?,?)')
+      .run(briefingId, campaign_id, area_code, area_type, title, briefingContent);
+
+    var briefing = db.prepare('SELECT * FROM field_briefings WHERE id = ?').get(briefingId);
+    res.status(201).json({ data: briefing });
+  } catch (err) {
+    console.error('Generate briefing error:', err);
+    res.status(500).json({ error: 'Failed to generate briefing: ' + err.message });
+  }
+});
+
+// GET /api/briefings/latest/:areaCode - latest briefing for an area (MUST be before /:campaignId)
+app.get(BASE + '/api/briefings/latest/:areaCode', (req, res) => {
+  try {
+    var briefing = db.prepare('SELECT * FROM field_briefings WHERE area_code = ? ORDER BY generated_at DESC LIMIT 1')
+      .get(req.params.areaCode);
+    if (!briefing) return res.status(404).json({ error: 'No briefing found for this area' });
+    res.json({ data: briefing });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get briefing' });
+  }
+});
+
+// GET /api/briefings/:campaignId - list briefings for campaign
+app.get(BASE + '/api/briefings/:campaignId', (req, res) => {
+  try {
+    var briefings = db.prepare('SELECT id, campaign_id, area_code, area_type, title, generated_at FROM field_briefings WHERE campaign_id = ? ORDER BY generated_at DESC LIMIT 50')
+      .all(req.params.campaignId);
+    res.json({ data: briefings });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get briefings' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE: AUTO-DESELECT FROM CALL QUEUE
+// ═══════════════════════════════════════════════════════════
+
+// POST /api/voters/:id/action - log voter action, trigger auto-deselect
+app.post(BASE + '/api/voters/:id/action', (req, res) => {
+  try {
+    var voterId = req.params.id;
+    var { campaign_id, action_type, agent_id, notes } = req.body;
+    if (!campaign_id || !action_type) return res.status(400).json({ error: 'campaign_id and action_type required' });
+
+    var voter = db.prepare('SELECT * FROM voters WHERE id = ?').get(voterId);
+    if (!voter) return res.status(404).json({ error: 'Voter not found' });
+
+    var { v4: uuidv4 } = require('uuid');
+
+    // Log the action
+    db.prepare('INSERT INTO voter_actions (id, voter_id, campaign_id, action_type, agent_id, notes) VALUES (?,?,?,?,?,?)')
+      .run(uuidv4(), voterId, campaign_id, action_type, agent_id || 'system', notes || null);
+
+    // Map action_type to support_status
+    var ACTION_STATUS_MAP = {
+      survey_completed: 'soft_yes',
+      signed_up: 'supporter',
+      donated: 'supporter',
+      volunteered: 'supporter'
+    };
+    var newStatus = ACTION_STATUS_MAP[action_type] || 'soft_yes';
+
+    // Update voter status
+    db.prepare("UPDATE voters SET support_status = ?, is_contacted = 1, updated_at = datetime('now') WHERE id = ?")
+      .run(newStatus, voterId);
+
+    // Check if any auto_stop_outcome rule matches
+    var rules = db.prepare("SELECT * FROM call_rules WHERE campaign_id = ? AND rule_type = 'auto_stop_outcome' AND is_active = 1").all(campaign_id);
+    var shouldDequeue = rules.some(function(r) { return r.rule_value === newStatus; });
+
+    if (shouldDequeue) {
+      // Dequeue the voter
+      var existingQueue = db.prepare("SELECT id FROM call_queue WHERE voter_id = ? AND campaign_id = ?").get(voterId, campaign_id);
+      if (existingQueue) {
+        db.prepare("UPDATE call_queue SET status = 'dequeued', completed_at = datetime('now'), outcome = ? WHERE voter_id = ? AND campaign_id = ? AND status IN ('queued','in_progress')")
+          .run(action_type, voterId, campaign_id);
+      } else {
+        db.prepare("INSERT INTO call_queue (id, campaign_id, voter_id, status, outcome, completed_at) VALUES (?,?,?,'dequeued',?,datetime('now'))")
+          .run(uuidv4(), campaign_id, voterId, action_type);
+      }
+    }
+
+    res.json({ message: 'Action logged', action_type: action_type, new_status: newStatus, dequeued: shouldDequeue });
+  } catch (err) {
+    console.error('Voter action error:', err);
+    res.status(500).json({ error: 'Failed to log voter action' });
+  }
+});
+
+// Modify existing POST /api/call-queue/complete to handle auto-deselect
+// (Override the existing one above this block)
+app.post(BASE + '/api/call-queue/complete-v2', (req, res) => {
+  // This is a no-op placeholder; the main one is above and already handles basic dequeue
+  res.json({ message: 'Use /api/call-queue/complete' });
 });
 
 // SPA fallback

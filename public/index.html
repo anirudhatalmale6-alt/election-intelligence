@@ -246,6 +246,32 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
 .saved-search-item:hover{background:rgba(255,255,255,0.03)}
 .saved-search-count{font-size:.72rem;background:var(--accent-dim);color:var(--accent);padding:2px 8px;border-radius:10px;font-family:var(--mono);font-weight:600;white-space:nowrap}
 
+/* ═══ LANGUAGE BADGE ═══ */
+.lang-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:10px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;background:rgba(139,92,246,0.2);color:#a78bfa;border:1px solid rgba(139,92,246,0.3)}
+.lang-badge.lang-match{background:rgba(34,197,94,0.18);color:var(--supporter);border-color:rgba(34,197,94,0.3)}
+.lang-toggle-wrap{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.82rem;cursor:pointer;margin-bottom:10px}
+.lang-toggle-wrap input[type=checkbox]{width:14px;height:14px;accent-color:var(--accent);cursor:pointer}
+.multi-select-langs{display:flex;flex-wrap:wrap;gap:6px;padding:10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.lang-option{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:10px;font-size:.78rem;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-secondary);transition:all .15s}
+.lang-option:hover{border-color:var(--accent);color:var(--accent)}
+.lang-option.selected{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+/* ═══ BRIEFING CARD ═══ */
+.briefing-card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-top:12px}
+.briefing-card-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-secondary);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.briefing-content{font-size:.88rem;line-height:1.7;color:var(--text-primary);white-space:pre-wrap}
+.briefing-content strong,.briefing-content b{color:var(--accent)}
+.briefing-section{margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.briefing-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+/* ═══ VOTER ACTION BUTTONS ═══ */
+.voter-action-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.btn-action{padding:7px 12px;border-radius:var(--radius-sm);font-size:.78rem;font-weight:600;border:1px solid;transition:all .15s;cursor:pointer;background:transparent;display:inline-flex;align-items:center;gap:6px}
+.btn-action-signup{color:#22d3ee;border-color:rgba(34,211,238,0.3)}
+.btn-action-signup:hover{background:rgba(34,211,238,0.12)}
+.btn-action-survey{color:var(--soft-yes);border-color:rgba(234,179,8,0.3)}
+.btn-action-survey:hover{background:rgba(234,179,8,0.12)}
+.btn-action-volunteer{color:var(--supporter);border-color:rgba(34,197,94,0.3)}
+.btn-action-volunteer:hover{background:rgba(34,197,94,0.12)}
+.voter-dequeued-indicator{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;background:rgba(34,197,94,0.12);color:var(--supporter);padding:2px 8px;border-radius:10px;border:1px solid rgba(34,197,94,0.25)}
 /* ═══ RESPONSIVE ═══ */
 @media(max-width:768px){
   .sidebar{width:var(--sidebar-collapsed)}
@@ -598,14 +624,28 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
         <button class="btn btn-primary btn-sm" onclick="intelActionAssignTeam()" data-t="assign_team">
           <i class="fas fa-user-plus"></i> Tilldela team
         </button>
-        <button class="btn btn-secondary btn-sm" onclick="intelActionBriefing()" data-t="generate_briefing">
-          <i class="fas fa-file-alt"></i> Generera briefing
+        <button class="btn btn-secondary btn-sm" onclick="intelActionBriefing()" data-t="generate_ai_briefing" id="intelBriefingBtn">
+          <i class="fas fa-robot"></i> <span data-t="generate_ai_briefing">Generera AI-briefing</span>
         </button>
         <button class="btn btn-secondary btn-sm" onclick="intelActionCall()" data-t="start_calling">
           <i class="fas fa-phone-alt"></i> Borja ringa
         </button>
       </div>
     </div>
+    <!-- AI Briefing Output (hidden until generated) -->
+    <div id="intelBriefingOutput" style="display:none;margin-top:0">
+      <div class="briefing-card">
+        <div class="briefing-card-title"><i class="fas fa-robot" style="color:var(--accent)"></i> <span data-t="ai_briefing_title">AI Falt-Briefing</span>
+          <span style="margin-left:auto;font-size:.7rem;color:var(--text-muted)" id="briefingTimestamp"></span>
+        </div>
+        <div class="briefing-content" id="briefingContentDisplay"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Recent Briefings for this district -->
+  <div id="districtBriefingsList" style="display:none;margin-top:12px">
+    <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:8px" data-t="recent_briefings">Senaste briefingar</div>
+    <div id="districtBriefingsItems"></div>
   </div>
   <div id="districtEmptyState" class="empty-state" style="margin-top:48px">
     <i class="fas fa-map-pin"></i>
@@ -744,6 +784,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
     <button class="tab-btn" onclick="showFieldTab('door')"><i class="fas fa-walking"></i> <span data-t="door_knocking">Dorrknarkning</span></button>
     <button class="tab-btn" onclick="showFieldTab('rules')"><i class="fas fa-sliders-h"></i> <span data-t="call_rules">Samtalsregler</span></button>
     <button class="tab-btn" onclick="showFieldTab('queue')"><i class="fas fa-list-ol"></i> <span data-t="call_queue">Samtalskolumn</span></button>
+    <button class="tab-btn" onclick="showFieldTab('briefings')"><i class="fas fa-robot"></i> <span data-t="recent_briefings">Briefingar</span></button>
   </div>
 
   <!-- Phone/Door tab content -->
@@ -778,6 +819,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
             <div class="form-group" style="margin-top:14px">
               <label data-t="notes">Anteckningar</label>
               <textarea id="contactNotes" rows="3" placeholder="Valfria anteckningar..."></textarea>
+            </div>
+            <!-- Quick Voter Actions (auto-deselect) -->
+            <div style="margin-top:14px">
+              <label style="font-size:.72rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:block" data-t="quick_voter_actions">Snabba atgarder</label>
+              <div class="voter-action-btns">
+                <button class="btn-action btn-action-signup" onclick="logVoterAction('signed_up')" data-t="voter_signed_up"><i class="fas fa-user-check"></i> <span data-t="voter_signed_up">Registrerad</span></button>
+                <button class="btn-action btn-action-survey" onclick="logVoterAction('survey_completed')" data-t="voter_survey_done"><i class="fas fa-clipboard-check"></i> <span data-t="voter_survey_done">Enkaten klar</span></button>
+                <button class="btn-action btn-action-volunteer" onclick="logVoterAction('volunteered')" data-t="voter_volunteered"><i class="fas fa-hands-helping"></i> <span data-t="voter_volunteered">Volontar</span></button>
+              </div>
+              <div id="vcActionMsg" style="margin-top:6px;font-size:.78rem"></div>
             </div>
           </div>
         </div>
@@ -848,13 +899,36 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
     </div>
   </div>
 
+  <!-- Field Briefings Tab -->
+  <div id="fieldops-briefings-panel" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div style="font-size:.88rem;color:var(--text-secondary)" data-t="recent_briefings">Senaste briefingar</div>
+      <button class="btn btn-primary btn-sm" onclick="loadFieldBriefings()"><i class="fas fa-sync-alt"></i> <span data-t="refresh">Uppdatera</span></button>
+    </div>
+    <div id="fieldBriefingsList">
+      <div class="empty-state"><i class="fas fa-robot" style="font-size:2rem"></i><p style="margin-top:12px" data-t="no_briefings">Inga briefingar annu</p></div>
+    </div>
+    <!-- Briefing detail view -->
+    <div id="fieldBriefingDetail" style="display:none;margin-top:16px">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('fieldBriefingDetail').style.display='none'"><i class="fas fa-arrow-left"></i> Tillbaka</button>
+      <div class="briefing-card" style="margin-top:10px">
+        <div class="briefing-card-title"><i class="fas fa-robot" style="color:var(--accent)"></i> <span id="fieldBriefingDetailTitle">Briefing</span></div>
+        <div class="briefing-content" id="fieldBriefingDetailContent"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Call Queue Tab (Feature 2) -->
   <div id="fieldops-queue-panel" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
       <div>
         <span style="font-size:.88rem;color:var(--text-secondary)" id="queueMetaText"></span>
       </div>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <label class="lang-toggle-wrap" style="margin-bottom:0">
+          <input type="checkbox" id="langMatchToggle" onchange="loadCallQueue()">
+          <span data-t="lang_match_toggle">Visa bara sprak-matchade valjare</span>
+        </label>
         <button class="btn btn-primary btn-sm" onclick="loadCallQueue()"><i class="fas fa-sync-alt"></i> <span data-t="refresh">Uppdatera</span></button>
       </div>
     </div>
@@ -1003,6 +1077,24 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
       <div class="form-group"><label data-t="phone_number">Telefon</label><input type="text" id="profilePhone" placeholder="+46..."></div>
       <div class="form-group"><label data-t="organization">Organisation</label><input type="text" id="profileOrg" placeholder="Parti / foretag"></div>
       <button class="btn btn-primary btn-sm" onclick="saveProfile()"><i class="fas fa-save"></i> <span data-t="save">Spara</span></button>
+    </div>
+    <div class="card">
+      <div class="card-title" data-t="languages_i_speak">Sprak jag talar</div>
+      <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:10px">Valj de sprak du talar sa att du matchas med valjare som talar samma sprak.</p>
+      <div class="multi-select-langs" id="profileLangsSelect">
+        <label class="lang-option" data-lang="sv"><input type="checkbox" value="sv" onchange="toggleLangOption(this)"> <span data-t="lang_sv">Svenska</span></label>
+        <label class="lang-option" data-lang="en"><input type="checkbox" value="en" onchange="toggleLangOption(this)"> <span data-t="lang_en">Engelska</span></label>
+        <label class="lang-option" data-lang="ar"><input type="checkbox" value="ar" onchange="toggleLangOption(this)"> <span data-t="lang_ar">Arabiska</span></label>
+        <label class="lang-option" data-lang="so"><input type="checkbox" value="so" onchange="toggleLangOption(this)"> <span data-t="lang_so">Somaliska</span></label>
+        <label class="lang-option" data-lang="ku"><input type="checkbox" value="ku" onchange="toggleLangOption(this)"> <span data-t="lang_ku">Kurdiska</span></label>
+        <label class="lang-option" data-lang="fa"><input type="checkbox" value="fa" onchange="toggleLangOption(this)"> <span data-t="lang_fa">Persiska</span></label>
+        <label class="lang-option" data-lang="tr"><input type="checkbox" value="tr" onchange="toggleLangOption(this)"> <span data-t="lang_tr">Turkiska</span></label>
+        <label class="lang-option" data-lang="ti"><input type="checkbox" value="ti" onchange="toggleLangOption(this)"> <span data-t="lang_ti">Tigrinska</span></label>
+        <label class="lang-option" data-lang="prs"><input type="checkbox" value="prs" onchange="toggleLangOption(this)"> <span data-t="lang_prs">Dari</span></label>
+        <label class="lang-option" data-lang="pl"><input type="checkbox" value="pl" onchange="toggleLangOption(this)"> <span data-t="lang_pl">Polska</span></label>
+        <label class="lang-option" data-lang="fi"><input type="checkbox" value="fi" onchange="toggleLangOption(this)"> <span data-t="lang_fi">Finska</span></label>
+      </div>
+      <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="saveUserLanguages()"><i class="fas fa-language"></i> <span data-t="save_languages">Spara sprak</span></button>
     </div>
     <div class="card">
       <div class="card-title" data-t="preferences">Installningar</div>
@@ -1246,7 +1338,19 @@ var T = {
     search_results:'Sokresultat',clear:'Rensa',last_contact:'Senaste kontakt',voters_found:'valjare hittades',
     searching:'Soker',no_voters_found:'Inga valjare hittades',save_search_modal:'Spara sokning',
     search_name:'Sokningsnamn',search_saved:'Sokning sparad',search_deleted:'Sokning borttagen',
-    confirm_delete:'Bekrafta borttagning?',add_filter_first:'Lagg till minst ett filter',name_required:'Ange ett namn'
+    confirm_delete:'Bekrafta borttagning?',add_filter_first:'Lagg till minst ett filter',name_required:'Ange ett namn',
+    // Feature: Language Matching
+    languages_i_speak:'Sprak jag talar',lang_sv:'Svenska',lang_en:'Engelska',lang_ar:'Arabiska',lang_so:'Somaliska',
+    lang_ku:'Kurdiska',lang_fa:'Persiska',lang_tr:'Turkiska',lang_ti:'Tigrinska',lang_prs:'Dari',lang_pl:'Polska',lang_fi:'Finska',
+    save_languages:'Spara sprak',languages_saved:'Sprak sparade!',lang_match_toggle:'Visa bara sprak-matchade valjare',
+    language_label:'Sprak',no_language:'Inget sprak',lang_matched:'Sprak-matchad',
+    // Feature: AI Briefing
+    generate_ai_briefing:'Generera AI-briefing',ai_briefing_title:'AI Falt-Briefing',generating_briefing:'Genererar briefing...',
+    briefing_generated:'Briefing genererad!',briefing_error:'Kunde inte generera briefing',recent_briefings:'Senaste briefingar',
+    no_briefings:'Inga briefingar annu',briefing_for:'Briefing for',
+    // Feature: Auto-deselect
+    voter_signed_up:'Registrerad',voter_survey_done:'Enkaten klar',voter_volunteered:'Volontar',
+    action_logged:'Atgard loggad',voter_dequeued:'Valjare borttagen fran kon',quick_voter_actions:'Snabba atgarder'
   },
   en: {
     nav_main:'MAIN MENU',nav_dashboard:'Dashboard',nav_map:'Map',nav_campaigns:'Campaigns',
@@ -1303,7 +1407,16 @@ var T = {
     search_results:'Search Results',clear:'Clear',last_contact:'Last Contact',voters_found:'voters found',
     searching:'Searching',no_voters_found:'No voters found',save_search_modal:'Save Search',
     search_name:'Search Name',search_saved:'Search saved',search_deleted:'Search deleted',
-    confirm_delete:'Confirm delete?',add_filter_first:'Add at least one filter',name_required:'Enter a name'
+    confirm_delete:'Confirm delete?',add_filter_first:'Add at least one filter',name_required:'Enter a name',
+    languages_i_speak:'Languages I speak',lang_sv:'Swedish',lang_en:'English',lang_ar:'Arabic',lang_so:'Somali',
+    lang_ku:'Kurdish',lang_fa:'Persian',lang_tr:'Turkish',lang_ti:'Tigrinya',lang_prs:'Dari',lang_pl:'Polish',lang_fi:'Finnish',
+    save_languages:'Save languages',languages_saved:'Languages saved!',lang_match_toggle:'Show language-matched voters only',
+    language_label:'Language',no_language:'No language',lang_matched:'Language match',
+    generate_ai_briefing:'Generate AI Briefing',ai_briefing_title:'AI Field Briefing',generating_briefing:'Generating briefing...',
+    briefing_generated:'Briefing generated!',briefing_error:'Could not generate briefing',recent_briefings:'Recent Briefings',
+    no_briefings:'No briefings yet',briefing_for:'Briefing for',
+    voter_signed_up:'Signed Up',voter_survey_done:'Survey Done',voter_volunteered:'Volunteered',
+    action_logged:'Action logged',voter_dequeued:'Voter removed from queue',quick_voter_actions:'Quick Voter Actions'
   },
   hi: {
     nav_main:'MUKHYA MENU',nav_dashboard:'Dashboard',nav_map:'Naksha',nav_campaigns:'Abhiyan',
@@ -1360,7 +1473,16 @@ var T = {
     search_results:'Khoj Parinaam',clear:'Saaf',last_contact:'Aakhri Sampark',voters_found:'matdata mila',
     searching:'Khoj kar raha hai',no_voters_found:'Koi matdata nahi mila',save_search_modal:'Khoj Saen',
     search_name:'Khoj ka Naam',search_saved:'Khoj Mehfooz',search_deleted:'Khoj Hata di',
-    confirm_delete:'Hataane ki pushti karein?',add_filter_first:'Kam se kam ek filter daalen',name_required:'Naam daalen'
+    confirm_delete:'Hataane ki pushti karein?',add_filter_first:'Kam se kam ek filter daalen',name_required:'Naam daalen',
+    languages_i_speak:'Meri bhashaaen',lang_sv:'Svedish',lang_en:'Angrezi',lang_ar:'Arabi',lang_so:'Somali',
+    lang_ku:'Kurdish',lang_fa:'Farsi',lang_tr:'Turki',lang_ti:'Tigrinya',lang_prs:'Dari',lang_pl:'Polish',lang_fi:'Finnish',
+    save_languages:'Bhashaaen Save karein',languages_saved:'Bhashaaen Mehfooz!',lang_match_toggle:'Sirf Bhasha-matched voters dikhaen',
+    language_label:'Bhaasha',no_language:'Koi bhaasha nahi',lang_matched:'Bhaasha match',
+    generate_ai_briefing:'AI Briefing banayein',ai_briefing_title:'AI Kshetra Briefing',generating_briefing:'Briefing ban rahi hai...',
+    briefing_generated:'Briefing tayaar!',briefing_error:'Briefing nahi ban saki',recent_briefings:'Haaliya Briefings',
+    no_briefings:'Abhi koi briefing nahi',briefing_for:'Briefing ke liye',
+    voter_signed_up:'Registered',voter_survey_done:'Survey ho gayi',voter_volunteered:'Volunteer hua',
+    action_logged:'Karya darj',voter_dequeued:'Voter queue se hata diya',quick_voter_actions:'Tvarit Matdata Karya'
   },
   ur: {
     nav_main:'BUNIYADI MENU',nav_dashboard:'Dashboard',nav_map:'Naqsha',nav_campaigns:'Muhim',
@@ -1417,7 +1539,16 @@ var T = {
     search_results:'Talaash Nataij',clear:'Saaf Karein',last_contact:'Aakhri Rabta',voters_found:'voters mile',
     searching:'Talaash ho raha hai',no_voters_found:'Koi voter nahi mila',save_search_modal:'Talaash Mehfooz Karein',
     search_name:'Talaash ka Naam',search_saved:'Talaash Mehfooz',search_deleted:'Talaash Hataa di',
-    confirm_delete:'Mitaane ki tasdeeq?',add_filter_first:'Kam se kam ek filter shamil karein',name_required:'Naam darj karein'
+    confirm_delete:'Mitaane ki tasdeeq?',add_filter_first:'Kam se kam ek filter shamil karein',name_required:'Naam darj karein',
+    languages_i_speak:'Meri zabaanein',lang_sv:'Swidish',lang_en:'Angrezi',lang_ar:'Arabi',lang_so:'Somali',
+    lang_ku:'Kurdish',lang_fa:'Farsi',lang_tr:'Turki',lang_ti:'Tigrinya',lang_prs:'Dari',lang_pl:'Polish',lang_fi:'Finnish',
+    save_languages:'Zabaanein Mehfooz karein',languages_saved:'Zabaanein Mehfooz!',lang_match_toggle:'Sirf Zabaan-matched voters dikhaen',
+    language_label:'Zabaan',no_language:'Koi zabaan nahi',lang_matched:'Zabaan match',
+    generate_ai_briefing:'AI Briefing tayaar karein',ai_briefing_title:'AI Maydani Briefing',generating_briefing:'Briefing ban rahi hai...',
+    briefing_generated:'Briefing tayaar!',briefing_error:'Briefing nahi ban saki',recent_briefings:'Haaliya Briefings',
+    no_briefings:'Abhi koi briefing nahi',briefing_for:'Briefing baraye',
+    voter_signed_up:'Registered',voter_survey_done:'Survey Mukammal',voter_volunteered:'Volunteer',
+    action_logged:'Iqdam darj',voter_dequeued:'Voter queue se hata diya',quick_voter_actions:'Fori Voter Iqdam'
   }
 };
 
@@ -2575,7 +2706,7 @@ var _callRulesCache = [];
 function showFieldTab(type){
   _fieldType = type === 'phone' || type === 'door' ? type : 'phone';
   // Tab buttons
-  var tabs = ['phone','door','rules','queue'];
+  var tabs = ['phone','door','rules','queue','briefings'];
   document.querySelectorAll('#page-fieldops .tab-btn').forEach(function(b,i){
     b.classList.toggle('active', tabs[i] === type);
   });
@@ -2583,12 +2714,15 @@ function showFieldTab(type){
   var callingPanel = document.getElementById('fieldops-calling-panel');
   var rulesPanel = document.getElementById('fieldops-rules-panel');
   var queuePanel = document.getElementById('fieldops-queue-panel');
+  var briefingsPanel = document.getElementById('fieldops-briefings-panel');
   callingPanel.style.display = (type === 'phone' || type === 'door') ? '' : 'none';
   rulesPanel.style.display = type === 'rules' ? '' : 'none';
   queuePanel.style.display = type === 'queue' ? '' : 'none';
+  if(briefingsPanel) briefingsPanel.style.display = type === 'briefings' ? '' : 'none';
 
   if(type === 'rules') loadCallRules();
   else if(type === 'queue') loadCallQueue();
+  else if(type === 'briefings') loadFieldBriefings();
   else loadNextVoter();
 }
 window.showFieldTab = showFieldTab;
@@ -2712,7 +2846,15 @@ async function loadCallQueue(){
     return;
   }
   try {
-    var data = await apiFetch('/call-queue/'+campaignId+'?limit=30');
+    // Check language match toggle
+    var langMatchToggle = document.getElementById('langMatchToggle');
+    var useLangMatch = langMatchToggle && langMatchToggle.checked;
+    var userId = currentUser ? currentUser.id : '';
+    var endpoint = useLangMatch
+      ? '/call-queue/'+campaignId+'/language-matched?limit=30&user_id='+userId
+      : '/call-queue/'+campaignId+'?limit=30';
+
+    var data = await apiFetch(endpoint);
     // Quiet hours check
     var quietWarn = document.getElementById('quietHoursWarning');
     if(data.quiet_hours){
@@ -2720,8 +2862,9 @@ async function loadCallQueue(){
       document.getElementById('quietHoursText').textContent = data.message || t('quiet_hours_msg');
     } else { quietWarn.style.display = 'none'; }
 
+    var callerLangs = data.caller_languages || [];
     var voters = data.data || [];
-    document.getElementById('queueMetaText').textContent = voters.length + ' ' + t('voters_in_queue');
+    document.getElementById('queueMetaText').textContent = voters.length + ' ' + t('voters_in_queue') + (useLangMatch ? ' ('+t('lang_matched')+')' : '');
     var el = document.getElementById('callQueueList');
     if(voters.length === 0){
       el.innerHTML = '<div class="empty-state" style="padding:40px"><i class="fas fa-check-circle" style="font-size:2rem;color:var(--supporter)"></i><p style="margin-top:12px">'+t('queue_empty')+'</p></div>';
@@ -2731,10 +2874,11 @@ async function loadCallQueue(){
     voters.forEach(function(v){
       var initials = ((v.first_name||'?').charAt(0)+(v.last_name||'?').charAt(0)).toUpperCase();
       var statusClass = 'badge-'+(v.support_status||'unknown');
+      var langBadge = getLanguageBadgeHtml(v.language, callerLangs);
       html += '<div class="queue-voter-row" onclick="callQueueVoter(\''+v.id+'\',\''+campaignId+'\')">';
       html += '<div class="queue-voter-avatar">'+initials+'</div>';
       html += '<div style="flex:1;min-width:0">';
-      html += '<div style="font-weight:600;font-size:.9rem">'+escapeHtml(v.full_name||((v.first_name||'')+' '+(v.last_name||'')).trim()||'-')+'</div>';
+      html += '<div style="font-weight:600;font-size:.9rem;display:flex;align-items:center;gap:6px">'+escapeHtml(v.full_name||((v.first_name||'')+' '+(v.last_name||'')).trim()||'-')+langBadge+'</div>';
       html += '<div style="font-size:.75rem;color:var(--text-muted)">'+(v.city||v.postcode||'-')+'</div>';
       html += '</div>';
       html += '<div style="text-align:right">';
@@ -3078,6 +3222,241 @@ function loadExampleSearch(type){
 }
 window.loadExampleSearch = loadExampleSearch;
 
+// ═══════════════════════════════════════════════════════════
+// FEATURE: LANGUAGE-MATCHED CALLING
+// ═══════════════════════════════════════════════════════════
+
+var LANG_CODES = ['sv','en','ar','so','ku','fa','tr','ti','prs','pl','fi'];
+var LANG_CODE_LABELS = {sv:'SV',en:'EN',ar:'AR',so:'SO',ku:'KU',fa:'FA',tr:'TR',ti:'TI',prs:'PRS',pl:'PL',fi:'FI'};
+
+function toggleLangOption(checkbox){
+  var label = checkbox.closest ? checkbox.closest('.lang-option') : checkbox.parentElement;
+  if(label) label.classList.toggle('selected', checkbox.checked);
+}
+window.toggleLangOption = toggleLangOption;
+
+function getSelectedLanguages(){
+  var langs = [];
+  document.querySelectorAll('#profileLangsSelect input[type=checkbox]:checked').forEach(function(cb){ langs.push(cb.value); });
+  return langs;
+}
+
+function loadProfileLanguages(){
+  if(!currentUser) return;
+  try {
+    var langs = currentUser.languages ? (typeof currentUser.languages === 'string' ? JSON.parse(currentUser.languages) : currentUser.languages) : [];
+    document.querySelectorAll('#profileLangsSelect input[type=checkbox]').forEach(function(cb){
+      var checked = langs.indexOf(cb.value) >= 0;
+      cb.checked = checked;
+      var label = cb.parentElement;
+      if(label) label.classList.toggle('selected', checked);
+    });
+  } catch(e){}
+}
+
+async function saveUserLanguages(){
+  if(!currentUser) return;
+  var langs = getSelectedLanguages();
+  try {
+    var data = await apiFetch('/users/'+currentUser.id+'/languages', {method:'PUT', body:JSON.stringify({languages:langs})});
+    currentUser.languages = data.data ? data.data.languages : JSON.stringify(langs);
+    showAlert(t('languages_saved'), 'success');
+  } catch(e){ showAlert(e.message, 'error'); }
+}
+window.saveUserLanguages = saveUserLanguages;
+
+function getLanguageBadgeHtml(voterLang, callerLangs){
+  if(!voterLang) return '';
+  var isMatch = callerLangs && callerLangs.indexOf(voterLang) >= 0;
+  var cls = isMatch ? 'lang-badge lang-match' : 'lang-badge';
+  var label = (LANG_CODE_LABELS[voterLang] || voterLang).toUpperCase();
+  return '<span class="'+cls+'"><i class="fas fa-language"></i> '+label+'</span>';
+}
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE: FIELD AGENT AI BRIEFINGS
+// ═══════════════════════════════════════════════════════════
+
+var _currentBriefingData = null;
+
+function intelActionBriefing(){
+  var intel = window._currentIntelDistrict;
+  if(!intel || !intel.district){ showAlert('Valj ett distrikt forst', 'warning'); return; }
+
+  var campaignId = document.getElementById('fieldOpsCampaign').value;
+  if(!campaignId){
+    // Try to get first campaign
+    apiFetch('/campaigns').then(function(data){
+      var campaigns = data.campaigns || data || [];
+      if(campaigns.length === 0){ showAlert('Skapa en kampanj forst', 'warning'); return; }
+      generateBriefingForDistrict(intel.district, campaigns[0].id);
+    }).catch(function(){ showAlert('Valj en kampanj i Faltoperationer forst', 'warning'); });
+    return;
+  }
+  generateBriefingForDistrict(intel.district, campaignId);
+}
+
+async function generateBriefingForDistrict(district, campaignId){
+  var btn = document.getElementById('intelBriefingBtn');
+  if(btn){
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>'+t('generating_briefing')+'</span>';
+    btn.disabled = true;
+  }
+  document.getElementById('intelBriefingOutput').style.display = 'none';
+
+  try {
+    var data = await apiFetch('/briefings/generate', {
+      method: 'POST',
+      body: JSON.stringify({
+        area_code: district.code || district.municipality_code,
+        area_type: district.code ? 'district' : 'municipality',
+        campaign_id: campaignId
+      })
+    });
+    var briefing = data.data;
+    _currentBriefingData = briefing;
+    renderBriefingCard(briefing);
+    showAlert(t('briefing_generated'), 'success');
+  } catch(e){
+    showAlert(t('briefing_error') + ': ' + e.message, 'error');
+  }
+
+  if(btn){
+    btn.innerHTML = '<i class="fas fa-robot"></i> <span data-t="generate_ai_briefing">'+t('generate_ai_briefing')+'</span>';
+    btn.disabled = false;
+  }
+}
+window.intelActionBriefing = intelActionBriefing;
+
+function renderBriefingCard(briefing){
+  var outputEl = document.getElementById('intelBriefingOutput');
+  var contentEl = document.getElementById('briefingContentDisplay');
+  var tsEl = document.getElementById('briefingTimestamp');
+  if(!outputEl || !contentEl) return;
+
+  var content = briefing.content || '';
+  // Format markdown-style bold and sections
+  var formatted = escapeHtml(content)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/^(\d+\. \*\*[^\n]+\*\*)/gm, '<div class="briefing-section" style="margin-bottom:10px"><strong>$1</strong></div>');
+
+  contentEl.innerHTML = '<div style="white-space:pre-wrap;line-height:1.7">' + formatted + '</div>';
+  if(tsEl) tsEl.textContent = briefing.generated_at ? new Date(briefing.generated_at).toLocaleString('sv-SE') : '';
+  outputEl.style.display = '';
+}
+
+async function loadFieldBriefings(){
+  var campaignId = document.getElementById('fieldOpsCampaign').value;
+  var el = document.getElementById('fieldBriefingsList');
+  if(!campaignId){
+    el.innerHTML = '<div style="padding:20px;color:var(--text-muted);text-align:center">'+t('select_campaign_first')+'</div>';
+    return;
+  }
+  try {
+    var data = await apiFetch('/briefings/'+campaignId);
+    var briefings = data.data || [];
+    if(briefings.length === 0){
+      el.innerHTML = '<div class="empty-state"><i class="fas fa-robot" style="font-size:2rem"></i><p style="margin-top:12px">'+t('no_briefings')+'</p></div>';
+      return;
+    }
+    var html = '';
+    briefings.forEach(function(b){
+      html += '<div class="card" style="margin-bottom:10px;padding:14px;cursor:pointer" onclick="viewFieldBriefing(\''+b.id+'\')">';
+      html += '<div style="display:flex;align-items:center;gap:10px">';
+      html += '<div style="width:36px;height:36px;border-radius:8px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas fa-robot" style="color:var(--accent)"></i></div>';
+      html += '<div style="flex:1"><div style="font-weight:600;font-size:.9rem">'+escapeHtml(b.title||'Briefing')+'</div>';
+      html += '<div style="font-size:.75rem;color:var(--text-muted)">'+escapeHtml(b.area_code)+' — '+(b.generated_at ? new Date(b.generated_at).toLocaleDateString('sv-SE') : '-')+'</div>';
+      html += '</div><i class="fas fa-chevron-right" style="color:var(--text-muted);font-size:.8rem"></i></div></div>';
+    });
+    el.innerHTML = html;
+  } catch(e){ el.innerHTML = '<div style="padding:20px;color:var(--opposition)">'+e.message+'</div>'; }
+}
+window.loadFieldBriefings = loadFieldBriefings;
+
+async function viewFieldBriefing(id){
+  try {
+    // Find the briefing stub from the list cache
+    var el = document.getElementById('fieldBriefingsList');
+    var detailEl = document.getElementById('fieldBriefingDetail');
+    var titleEl = document.getElementById('fieldBriefingDetailTitle');
+    var contentEl = document.getElementById('fieldBriefingDetailContent');
+
+    el.style.display = 'none';
+    detailEl.style.display = '';
+    titleEl.textContent = 'Laddar...';
+    contentEl.textContent = '';
+
+    // Use the full-content endpoint — fetch list again but with content
+    var campaignId = document.getElementById('fieldOpsCampaign').value;
+    // We'll use /briefings/latest/:areaCode after getting area_code from the list
+    // For simplicity re-fetch the briefings list and pick by id, then fetch latest by area_code
+    var listData = await apiFetch('/briefings/'+campaignId);
+    var stub = (listData.data || []).find(function(b){ return b.id === id; });
+    if(stub){
+      titleEl.textContent = stub.title || 'Briefing';
+      if(stub.area_code){
+        var full = await apiFetch('/briefings/latest/'+encodeURIComponent(stub.area_code));
+        if(full.data && full.data.content) contentEl.textContent = full.data.content;
+        else contentEl.textContent = 'Ingen innehall tillganglig.';
+      }
+    } else {
+      titleEl.textContent = 'Briefing';
+      contentEl.textContent = 'Kunde inte ladda briefing.';
+    }
+  } catch(e){ showAlert(e.message, 'error'); }
+}
+window.viewFieldBriefing = viewFieldBriefing;
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE: AUTO-DESELECT FROM CALL QUEUE
+// ═══════════════════════════════════════════════════════════
+
+async function logVoterAction(actionType){
+  if(!_currentVoter){ showAlert('No voter selected', 'error'); return; }
+  var campaignId = document.getElementById('fieldOpsCampaign').value;
+  if(!campaignId){ showAlert(t('select_campaign_first'), 'warning'); return; }
+
+  var msgEl = document.getElementById('vcActionMsg');
+  if(msgEl) msgEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+  try {
+    var data = await apiFetch('/voters/'+_currentVoter.id+'/action', {
+      method: 'POST',
+      body: JSON.stringify({
+        campaign_id: campaignId,
+        action_type: actionType,
+        agent_id: currentUser ? currentUser.id : 'system'
+      })
+    });
+
+    var actionLabels = {signed_up:t('voter_signed_up'), survey_completed:t('voter_survey_done'), volunteered:t('voter_volunteered')};
+    var label = actionLabels[actionType] || actionType;
+
+    if(msgEl){
+      if(data.dequeued){
+        msgEl.innerHTML = '<span style="color:var(--supporter)"><i class="fas fa-check-circle"></i> '+label+' — '+t('voter_dequeued')+'</span>';
+      } else {
+        msgEl.innerHTML = '<span style="color:var(--soft-yes)"><i class="fas fa-check"></i> '+label+' — '+t('action_logged')+'</span>';
+      }
+      setTimeout(function(){ msgEl.innerHTML = ''; }, 3000);
+    }
+
+    showAlert(label + (data.dequeued ? ' — ' + t('voter_dequeued') : ''), 'success');
+
+    if(data.dequeued){
+      // Show dequeued indicator on voter card
+      var badge = document.getElementById('vcBadge');
+      if(badge) badge.innerHTML += ' <span class="voter-dequeued-indicator"><i class="fas fa-check-circle"></i> Dequeued</span>';
+      // Move to next voter after short delay
+      setTimeout(function(){ loadNextVoter(); }, 1500);
+    }
+  } catch(e){
+    if(msgEl) msgEl.innerHTML = '<span style="color:var(--opposition)"><i class="fas fa-exclamation-triangle"></i> '+e.message+'</span>';
+    showAlert(e.message, 'error');
+  }
+}
+window.logVoterAction = logVoterAction;
+
 // ═══ UTILITIES ═══
 function escapeHtml(s){
   if(!s) return '';
@@ -3113,6 +3492,7 @@ function loadProfile(){
   var n = document.getElementById('profileName'); if(n) n.value = currentUser.name || '';
   var e = document.getElementById('profileEmail'); if(e) e.value = currentUser.email || '';
   var l = document.getElementById('profileLang'); if(l) l.value = currentLang;
+  loadProfileLanguages();
 }
 
 async function saveProfile(){
