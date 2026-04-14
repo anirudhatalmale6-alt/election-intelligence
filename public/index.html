@@ -196,6 +196,56 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
 .search-bar input{flex:1;min-width:200px}
 .search-bar select{min-width:140px}
 
+/* ═══ INTELLIGENCE CARD (Feature 1) ═══ */
+.intel-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-top:20px}
+.intel-card-header{padding:20px 24px;background:linear-gradient(135deg,var(--bg-secondary),var(--bg-card));border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.intel-card-title{font-size:1.3rem;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.intel-card-sub{font-size:.82rem;color:var(--text-secondary)}
+.intel-score-badge{width:64px;height:64px;border-radius:50%;border:3px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.intel-score-badge .score-val{font-size:1.3rem;font-weight:700;font-family:var(--mono);line-height:1}
+.intel-score-badge .score-lbl{font-size:.5rem;text-transform:uppercase;letter-spacing:.05em;line-height:1.2}
+.intel-section{padding:20px 24px;border-bottom:1px solid var(--border)}
+.intel-section:last-child{border-bottom:none}
+.intel-section-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.intel-section-title i{color:var(--accent);width:16px;text-align:center}
+.intel-actions{display:flex;gap:8px;flex-wrap:wrap;padding:16px 24px;background:var(--bg-secondary);border-top:1px solid var(--border)}
+
+/* district search */
+.district-search-wrap{position:relative;max-width:560px}
+.district-search-wrap input{width:100%;padding:12px 14px 12px 42px;font-size:.95rem}
+.district-search-wrap .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted)}
+.district-results-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);z-index:50;max-height:320px;overflow-y:auto;box-shadow:var(--shadow-lg);display:none}
+.district-results-dropdown.open{display:block}
+.district-result-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:background .12s}
+.district-result-item:hover{background:var(--accent-dim)}
+.district-result-item:last-child{border-bottom:none}
+.district-result-name{font-weight:600;font-size:.9rem}
+.district-result-meta{font-size:.75rem;color:var(--text-muted);margin-top:2px}
+
+/* ═══ CALL RULES (Feature 2) ═══ */
+.rule-card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.rule-card-icon{width:36px;height:36px;border-radius:8px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0}
+.rule-card-body{flex:1;min-width:0}
+.rule-card-title{font-size:.88rem;font-weight:600}
+.rule-card-value{font-size:.78rem;color:var(--accent);font-family:var(--mono);margin-top:2px}
+
+/* queue voter card */
+.queue-voter-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background .12s}
+.queue-voter-row:hover{background:rgba(255,255,255,0.03)}
+.queue-voter-row:last-child{border-bottom:none}
+.queue-voter-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--accent);flex-shrink:0}
+
+/* ═══ SMART SEARCHES (Feature 3) ═══ */
+.filter-builder{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.filter-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.filter-row select,.filter-row input{padding:7px 10px;font-size:.82rem;min-width:0}
+.filter-row select{flex:1}
+.filter-row input{flex:1}
+.filter-row .btn-ghost{padding:6px 10px;color:var(--opposition)}
+.saved-search-item{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background .12s;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.saved-search-item:hover{background:rgba(255,255,255,0.03)}
+.saved-search-count{font-size:.72rem;background:var(--accent-dim);color:var(--accent);padding:2px 8px;border-radius:10px;font-family:var(--mono);font-weight:600;white-space:nowrap}
+
 /* ═══ RESPONSIVE ═══ */
 @media(max-width:768px){
   .sidebar{width:var(--sidebar-collapsed)}
@@ -267,6 +317,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
     </div>
     <div class="nav-item" onclick="navigateTo('map')" data-page="map">
       <i class="fas fa-map"></i><span class="nav-label" data-t="nav_map">Karta</span>
+    </div>
+    <div class="nav-item" onclick="navigateTo('districts')" data-page="districts">
+      <i class="fas fa-map-pin"></i><span class="nav-label" data-t="nav_districts">Valdistrikt</span>
     </div>
     <div class="nav-item" onclick="navigateTo('campaigns')" data-page="campaigns">
       <i class="fas fa-bullhorn"></i><span class="nav-label" data-t="nav_campaigns">Kampanjer</span>
@@ -482,6 +535,84 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
   </div>
 </div>
 
+<!-- VALDISTRIKT (Feature 1) -->
+<div class="page" id="page-districts">
+  <div class="page-header">
+    <h1 class="page-title"><i class="fas fa-map-pin"></i> <span data-t="districts_title">Valdistrikt Intelligence</span></h1>
+  </div>
+  <div class="district-search-wrap" id="districtSearchWrap">
+    <i class="fas fa-search search-icon"></i>
+    <input type="text" id="districtSearchInput" placeholder="Sok valdistrikt, postnummer eller kommun..."
+      autocomplete="off" oninput="onDistrictSearchInput()" onkeydown="onDistrictSearchKey(event)">
+    <div class="district-results-dropdown" id="districtResultsDropdown"></div>
+  </div>
+  <div id="districtIntelCard" style="display:none">
+    <div class="intel-card">
+      <div class="intel-card-header">
+        <div>
+          <div class="intel-card-title" id="intelDistrictName">-</div>
+          <div class="intel-card-sub" id="intelDistrictSub">-</div>
+          <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap">
+            <div style="font-size:.78rem;color:var(--text-muted)"><i class="fas fa-users" style="margin-right:4px"></i><span id="intelRegistered">-</span> <span data-t="registered_voters">rostberattigade</span></div>
+            <div style="font-size:.78rem;color:var(--text-muted)"><i class="fas fa-city" style="margin-right:4px"></i><span id="intelMunicipality">-</span></div>
+            <div style="font-size:.78rem;color:var(--text-muted)"><i class="fas fa-map-marked-alt" style="margin-right:4px"></i><span id="intelCounty">-</span></div>
+          </div>
+        </div>
+        <div class="intel-score-badge" id="intelScoreBadge">
+          <div class="score-val" id="intelScoreVal">-</div>
+          <div class="score-lbl" data-t="ai_score">AI Score</div>
+        </div>
+      </div>
+
+      <!-- Election Results Section -->
+      <div class="intel-section">
+        <div class="intel-section-title"><i class="fas fa-chart-bar"></i> <span data-t="election_results">Valresultat</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:.75rem;color:var(--text-secondary);margin-bottom:8px;font-weight:600">2022</div>
+            <div id="intelBars2022"></div>
+          </div>
+          <div>
+            <div style="font-size:.75rem;color:var(--text-secondary);margin-bottom:8px;font-weight:600">2018</div>
+            <div id="intelBars2018"></div>
+          </div>
+        </div>
+        <div style="margin-top:16px"><canvas id="intelCompareChart" height="180"></canvas></div>
+        <div id="intelResultsNote" style="margin-top:8px;font-size:.72rem;color:var(--text-muted)"></div>
+      </div>
+
+      <!-- Demographics Section -->
+      <div class="intel-section">
+        <div class="intel-section-title"><i class="fas fa-users"></i> <span data-t="demographics">Demografi (SCB)</span></div>
+        <div id="intelDemographics"></div>
+      </div>
+
+      <!-- Campaign Activity Section -->
+      <div class="intel-section">
+        <div class="intel-section-title"><i class="fas fa-phone-alt"></i> <span data-t="campaign_activity">Kampanjaktivitet</span></div>
+        <div id="intelCampaignStats"></div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="intel-actions">
+        <button class="btn btn-primary btn-sm" onclick="intelActionAssignTeam()" data-t="assign_team">
+          <i class="fas fa-user-plus"></i> Tilldela team
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="intelActionBriefing()" data-t="generate_briefing">
+          <i class="fas fa-file-alt"></i> Generera briefing
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="intelActionCall()" data-t="start_calling">
+          <i class="fas fa-phone-alt"></i> Borja ringa
+        </button>
+      </div>
+    </div>
+  </div>
+  <div id="districtEmptyState" class="empty-state" style="margin-top:48px">
+    <i class="fas fa-map-pin"></i>
+    <p data-t="districts_hint">Sok pa ett valdistrikt ovan for att se intelligence-kortet</p>
+  </div>
+</div>
+
 <!-- CAMPAIGNS -->
 <div class="page" id="page-campaigns">
   <div class="page-header">
@@ -500,30 +631,106 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
       <button class="btn btn-primary btn-sm" onclick="openModal('addVoterModal')"><i class="fas fa-plus"></i></button>
     </div>
   </div>
-  <div class="search-bar">
-    <input type="text" id="voterSearch" placeholder="Sok valjare..." onkeyup="debounceVoterSearch()">
-    <select id="voterStatusFilter" onchange="loadVoters()">
-      <option value="">Alla statusar</option>
-      <option value="supporter">Supporter</option>
-      <option value="soft_yes">Soft Yes</option>
-      <option value="undecided">Undecided</option>
-      <option value="opposition">Opposition</option>
-      <option value="unknown">Unknown</option>
-    </select>
-    <select id="voterCampaignFilter" onchange="loadVoters()">
-      <option value="">Alla kampanjer</option>
-    </select>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showVotersTab('list')" id="votersTabList"><i class="fas fa-list"></i> <span data-t="voter_list">Valjarlistа</span></button>
+    <button class="tab-btn" onclick="showVotersTab('smart')" id="votersTabSmart"><i class="fas fa-filter"></i> <span data-t="smart_searches">Smarta sokningar</span></button>
   </div>
-  <div class="card" style="padding:0;overflow-x:auto">
-    <table class="data-table">
-      <thead><tr>
-        <th data-t="name">Namn</th><th data-t="address">Adress</th><th>Postnr</th><th>Status</th>
-        <th data-t="contacts">Kontakter</th><th data-t="priority">Prioritet</th><th></th>
-      </tr></thead>
-      <tbody id="votersTableBody"></tbody>
-    </table>
+
+  <!-- Voter List Tab -->
+  <div class="tab-panel active" id="voters-list-panel">
+    <div class="search-bar">
+      <input type="text" id="voterSearch" placeholder="Sok valjare..." onkeyup="debounceVoterSearch()">
+      <select id="voterStatusFilter" onchange="loadVoters()">
+        <option value="">Alla statusar</option>
+        <option value="supporter">Supporter</option>
+        <option value="soft_yes">Soft Yes</option>
+        <option value="undecided">Undecided</option>
+        <option value="opposition">Opposition</option>
+        <option value="unknown">Unknown</option>
+      </select>
+      <select id="voterCampaignFilter" onchange="loadVoters()">
+        <option value="">Alla kampanjer</option>
+      </select>
+    </div>
+    <div class="card" style="padding:0;overflow-x:auto">
+      <table class="data-table">
+        <thead><tr>
+          <th data-t="name">Namn</th><th data-t="address">Adress</th><th>Postnr</th><th>Status</th>
+          <th data-t="contacts">Kontakter</th><th data-t="priority">Prioritet</th><th></th>
+        </tr></thead>
+        <tbody id="votersTableBody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex;justify-content:center;gap:10px;margin-top:16px" id="voterPagination"></div>
   </div>
-  <div style="display:flex;justify-content:center;gap:10px;margin-top:16px" id="voterPagination"></div>
+
+  <!-- Smart Searches Tab (Feature 3) -->
+  <div class="tab-panel" id="voters-smart-panel">
+    <div style="display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start" id="smartSearchLayout">
+      <!-- Saved Searches Sidebar -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)" data-t="saved_searches">Sparade sokningar</div>
+          <button class="btn btn-primary btn-sm" onclick="openNewSmartSearch()"><i class="fas fa-plus"></i></button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div id="savedSearchesList">
+            <div class="empty-state" style="padding:24px"><i class="fas fa-filter" style="font-size:1.5rem"></i><p style="margin-top:8px;font-size:.82rem" data-t="no_saved_searches">Inga sparade sokningar</p></div>
+          </div>
+        </div>
+        <!-- Built-in example searches -->
+        <div style="margin-top:12px">
+          <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:8px;font-weight:600" data-t="example_searches">EXEMPELSOKNINGAR</div>
+          <button class="btn btn-secondary btn-sm" style="width:100%;text-align:left;justify-content:flex-start;margin-bottom:6px" onclick="loadExampleSearch('promised_never_volunteered')">
+            <i class="fas fa-star" style="color:var(--soft-yes)"></i> <span data-t="ex_promised">Lovade hjalpa, aldrig volontar</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" style="width:100%;text-align:left;justify-content:flex-start;margin-bottom:6px" onclick="loadExampleSearch('contacted_3_undecided')">
+            <i class="fas fa-question-circle" style="color:var(--undecided)"></i> <span data-t="ex_contacted_undecided">Kontaktad 3+ ggr, fortfarande obestamt</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" style="width:100%;text-align:left;justify-content:flex-start;margin-bottom:6px" onclick="loadExampleSearch('high_priority_never_contacted')">
+            <i class="fas fa-exclamation-circle" style="color:var(--opposition)"></i> <span data-t="ex_high_priority">Hog prioritet, aldrig kontaktad</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Builder & Results -->
+      <div>
+        <!-- Filter Builder -->
+        <div class="card" style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="font-size:.88rem;font-weight:600"><i class="fas fa-filter" style="color:var(--accent);margin-right:8px"></i><span data-t="filter_builder">Filterbyggare</span></div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost btn-sm" onclick="addFilterRow()"><i class="fas fa-plus"></i> <span data-t="add_filter">Lagg till filter</span></button>
+              <button class="btn btn-primary btn-sm" onclick="executeSmartSearch()"><i class="fas fa-search"></i> <span data-t="run_search">Kora sokning</span></button>
+            </div>
+          </div>
+          <div id="filterRowsContainer" class="filter-builder">
+            <!-- Filter rows added dynamically -->
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;flex-wrap:wrap;gap:8px">
+            <div style="font-size:.78rem;color:var(--text-muted)" id="smartSearchResultCount"></div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-secondary btn-sm" onclick="saveSmartSearch()"><i class="fas fa-bookmark"></i> <span data-t="save_search">Spara sokning</span></button>
+              <button class="btn btn-ghost btn-sm" onclick="clearFilters()"><i class="fas fa-times"></i> <span data-t="clear">Rensa</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div class="card" style="padding:0;overflow-x:auto" id="smartResultsCard" style="display:none">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)" data-t="search_results">Sokresultat</div>
+          <table class="data-table">
+            <thead><tr>
+              <th data-t="name">Namn</th><th>Status</th>
+              <th data-t="contacts">Kontakter</th><th data-t="last_contact">Senaste kontakt</th>
+              <th data-t="priority">Prioritet</th><th></th>
+            </tr></thead>
+            <tbody id="smartResultsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- FIELD OPS -->
@@ -535,46 +742,127 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
   <div class="tabs">
     <button class="tab-btn active" onclick="showFieldTab('phone')"><i class="fas fa-phone-alt"></i> <span data-t="phone_banking">Ringning</span></button>
     <button class="tab-btn" onclick="showFieldTab('door')"><i class="fas fa-walking"></i> <span data-t="door_knocking">Dorrknarkning</span></button>
+    <button class="tab-btn" onclick="showFieldTab('rules')"><i class="fas fa-sliders-h"></i> <span data-t="call_rules">Samtalsregler</span></button>
+    <button class="tab-btn" onclick="showFieldTab('queue')"><i class="fas fa-list-ol"></i> <span data-t="call_queue">Samtalskolumn</span></button>
   </div>
-  <div class="grid-2" style="grid-template-columns:1fr 340px">
-    <div>
-      <div class="voter-card" id="currentVoterCard">
-        <div class="voter-card-header">
-          <div>
-            <div style="font-size:1.1rem;font-weight:600" id="vcName">-</div>
-            <div style="font-size:.78rem;color:var(--text-secondary)" id="vcMeta">-</div>
+
+  <!-- Phone/Door tab content -->
+  <div id="fieldops-calling-panel">
+    <div class="grid-2" style="grid-template-columns:1fr 340px">
+      <div>
+        <div class="voter-card" id="currentVoterCard">
+          <div class="voter-card-header">
+            <div>
+              <div style="font-size:1.1rem;font-weight:600" id="vcName">-</div>
+              <div style="font-size:.78rem;color:var(--text-secondary)" id="vcMeta">-</div>
+            </div>
+            <div id="vcBadge"></div>
           </div>
-          <div id="vcBadge"></div>
+          <div class="voter-card-body">
+            <div class="voter-card-field"><span class="field-label" data-t="address">Adress</span><span class="field-value" id="vcAddress">-</span></div>
+            <div class="voter-card-field"><span class="field-label">Postnr</span><span class="field-value" id="vcPostcode">-</span></div>
+            <div class="voter-card-field"><span class="field-label" data-t="phone_number">Telefon</span><span class="field-value" id="vcPhone">-</span></div>
+            <div class="voter-card-field"><span class="field-label" data-t="contacts">Kontakter</span><span class="field-value" id="vcContacts">0</span></div>
+            <div class="voter-card-field"><span class="field-label">AI Score</span><span class="field-value" id="vcAiScore">-</span></div>
+            <div class="voter-card-field"><span class="field-label" data-t="talking_points">Samtalsamnens</span><span class="field-value" id="vcTalkingPoints" style="font-size:.82rem;color:var(--accent)">-</span></div>
+            <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+            <label style="font-size:.78rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:block" data-t="log_outcome">Logga resultat</label>
+            <div class="outcomes-grid">
+              <button class="btn-outcome o-supporter" onclick="logOutcome('supporter')"><i class="fas fa-check-circle"></i> Supporter</button>
+              <button class="btn-outcome o-soft_yes" onclick="logOutcome('soft_yes')"><i class="fas fa-thumbs-up"></i> Soft Yes</button>
+              <button class="btn-outcome o-undecided" onclick="logOutcome('undecided')"><i class="fas fa-question-circle"></i> Undecided</button>
+              <button class="btn-outcome o-opposition" onclick="logOutcome('opposition')"><i class="fas fa-times-circle"></i> Opposition</button>
+              <button class="btn-outcome o-no_answer" onclick="logOutcome('no_answer')"><i class="fas fa-phone-slash"></i> No Answer</button>
+              <button class="btn-outcome o-invalid" onclick="logOutcome('invalid')"><i class="fas fa-ban"></i> Invalid</button>
+            </div>
+            <div class="form-group" style="margin-top:14px">
+              <label data-t="notes">Anteckningar</label>
+              <textarea id="contactNotes" rows="3" placeholder="Valfria anteckningar..."></textarea>
+            </div>
+          </div>
         </div>
-        <div class="voter-card-body">
-          <div class="voter-card-field"><span class="field-label">Adress</span><span class="field-value" id="vcAddress">-</span></div>
-          <div class="voter-card-field"><span class="field-label">Postnr</span><span class="field-value" id="vcPostcode">-</span></div>
-          <div class="voter-card-field"><span class="field-label">Telefon</span><span class="field-value" id="vcPhone">-</span></div>
-          <div class="voter-card-field"><span class="field-label">Kontakter</span><span class="field-value" id="vcContacts">0</span></div>
-          <div class="voter-card-field"><span class="field-label">AI Score</span><span class="field-value" id="vcAiScore">-</span></div>
-          <div class="voter-card-field"><span class="field-label" data-t="talking_points">Samtalsamnens</span><span class="field-value" id="vcTalkingPoints" style="font-size:.82rem;color:var(--accent)">-</span></div>
-          <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
-          <label style="font-size:.78rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:block" data-t="log_outcome">Logga resultat</label>
-          <div class="outcomes-grid">
-            <button class="btn-outcome o-supporter" onclick="logOutcome('supporter')"><i class="fas fa-check-circle"></i> Supporter</button>
-            <button class="btn-outcome o-soft_yes" onclick="logOutcome('soft_yes')"><i class="fas fa-thumbs-up"></i> Soft Yes</button>
-            <button class="btn-outcome o-undecided" onclick="logOutcome('undecided')"><i class="fas fa-question-circle"></i> Undecided</button>
-            <button class="btn-outcome o-opposition" onclick="logOutcome('opposition')"><i class="fas fa-times-circle"></i> Opposition</button>
-            <button class="btn-outcome o-no_answer" onclick="logOutcome('no_answer')"><i class="fas fa-phone-slash"></i> No Answer</button>
-            <button class="btn-outcome o-invalid" onclick="logOutcome('invalid')"><i class="fas fa-ban"></i> Invalid</button>
-          </div>
-          <div class="form-group" style="margin-top:14px">
-            <label data-t="notes">Anteckningar</label>
-            <textarea id="contactNotes" rows="3" placeholder="Valfria anteckningar..."></textarea>
-          </div>
+      </div>
+      <div class="card" style="padding:0">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary)" data-t="contact_history">Kontakthistorik</div>
+        <div class="contact-timeline" id="contactTimeline">
+          <div class="empty-state" style="padding:30px"><i class="fas fa-history" style="font-size:1.5rem"></i><p style="margin-top:8px" data-t="no_contacts">Inga kontakter annu</p></div>
         </div>
       </div>
     </div>
-    <div class="card" style="padding:0">
-      <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary)" data-t="contact_history">Kontakthistorik</div>
-      <div class="contact-timeline" id="contactTimeline">
-        <div class="empty-state" style="padding:30px"><i class="fas fa-history" style="font-size:1.5rem"></i><p style="margin-top:8px" data-t="no_contacts">Inga kontakter annu</p></div>
+  </div>
+
+  <!-- Call Rules Tab (Feature 2) -->
+  <div id="fieldops-rules-panel" style="display:none">
+    <div class="grid-2">
+      <!-- Rules Config -->
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div style="font-size:.88rem;font-weight:600"><i class="fas fa-sliders-h" style="color:var(--accent);margin-right:8px"></i><span data-t="add_rule">Lagg till ny regel</span></div>
+          </div>
+          <div class="form-group">
+            <label data-t="rule_type">Regeltyp</label>
+            <select id="newRuleType" onchange="onRuleTypeChange()">
+              <option value="max_per_week" data-t="rule_max_week">Max samtal per vecka</option>
+              <option value="max_total" data-t="rule_max_total">Max samtal totalt</option>
+              <option value="auto_stop_outcome" data-t="rule_auto_stop">Auto-stopp vid resultat</option>
+              <option value="requeue_days" data-t="rule_requeue">Aterko efter X dagar</option>
+              <option value="quiet_hours_start" data-t="rule_quiet_start">Tysta timmar - Start</option>
+              <option value="quiet_hours_end" data-t="rule_quiet_end">Tysta timmar - Slut</option>
+            </select>
+          </div>
+          <div class="form-group" id="ruleValueGroup">
+            <label data-t="rule_value">Varde</label>
+            <input type="text" id="newRuleValue" placeholder="t.ex. 3">
+          </div>
+          <div class="form-group" id="ruleOutcomeGroup" style="display:none">
+            <label data-t="rule_outcome">Stopp-resultat</label>
+            <select id="newRuleOutcome">
+              <option value="supporter">Supporter</option>
+              <option value="soft_yes">Soft Yes</option>
+            </select>
+          </div>
+          <div class="form-group" id="ruleTimeGroup" style="display:none">
+            <label data-t="rule_time">Tid (HH:MM)</label>
+            <input type="time" id="newRuleTime" value="09:00">
+          </div>
+          <button class="btn btn-primary" onclick="saveCallRule()">
+            <i class="fas fa-plus"></i> <span data-t="add_rule">Lagg till regel</span>
+          </button>
+        </div>
+
+        <!-- Stats Card -->
+        <div class="card" id="queueStatsCard">
+          <div style="font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:14px" data-t="queue_stats">Ko-statistik</div>
+          <div id="queueStatsContent"></div>
+        </div>
       </div>
+
+      <!-- Current Rules -->
+      <div>
+        <div style="font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:12px" data-t="active_rules">Aktiva regler</div>
+        <div id="callRulesList">
+          <div class="empty-state"><i class="fas fa-sliders-h" style="font-size:1.5rem"></i><p style="margin-top:8px" data-t="no_rules">Inga regler annu</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call Queue Tab (Feature 2) -->
+  <div id="fieldops-queue-panel" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <span style="font-size:.88rem;color:var(--text-secondary)" id="queueMetaText"></span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="loadCallQueue()"><i class="fas fa-sync-alt"></i> <span data-t="refresh">Uppdatera</span></button>
+      </div>
+    </div>
+    <div id="quietHoursWarning" style="display:none;padding:14px 18px;background:rgba(201,162,39,0.1);border:1px solid var(--accent);border-radius:var(--radius);margin-bottom:16px;font-size:.85rem">
+      <i class="fas fa-moon" style="color:var(--accent);margin-right:8px"></i><span id="quietHoursText" data-t="quiet_hours_msg">Tysta timmar aktiva — inga samtal tillats nu</span>
+    </div>
+    <div class="card" style="padding:0">
+      <div id="callQueueList"></div>
     </div>
   </div>
 </div>
@@ -852,6 +1140,27 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
   </div>
 </div>
 
+<!-- Save Smart Search Modal -->
+<div class="modal-overlay" id="saveSmartSearchModal">
+  <div class="modal">
+    <div class="modal-header"><h3 data-t="save_search">Spara sokning</h3><button class="btn-ghost" onclick="closeModal('saveSmartSearchModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label data-t="search_name">Sokningsnamn</label>
+        <input type="text" id="ssName" placeholder="t.ex. Lovade hjalpa men aldrig volontar">
+      </div>
+      <div class="form-group">
+        <label data-t="description">Beskrivning</label>
+        <textarea id="ssDesc" rows="2" placeholder="Kort beskrivning av vad sokningen hittar..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('saveSmartSearchModal')">Avbryt</button>
+      <button class="btn btn-primary" onclick="confirmSaveSmartSearch()"><i class="fas fa-save"></i> Spara</button>
+    </div>
+  </div>
+</div>
+
 <!-- Alert toast -->
 <div class="alert-toast" id="alertToast"></div>
 
@@ -905,7 +1214,39 @@ var T = {
     '2fa_status_off':'2FA ar inte aktiverat','2fa_recommend':'Rekommenderas for okad sakerhet',enable_2fa:'Aktivera 2FA',
     active_sessions:'Aktiva sessioner',current_session:'Nuvarande session',
     ratsit_lookup:'Sokdata fran Ratsit.se',ratsit_desc:'Oppna Ratsit.se for att se vem som bor i detta postnummeromrade.',
-    open_ratsit:'Oppna Ratsit.se for detta postnummer',ratsit_note:'Ratsit.se oppnas i en ny flik. Kopiera info darfran till formularet nedan.'
+    open_ratsit:'Oppna Ratsit.se for detta postnummer',ratsit_note:'Ratsit.se oppnas i en ny flik. Kopiera info darfran till formularet nedan.',
+    // Feature 1
+    nav_districts:'Valdistrikt',districts_title:'Valdistrikt Intelligence',registered_voters:'rostberattigade',
+    district_code_label:'Distriktskod',ai_score:'AI Poang',assign_team:'Tilldela team',generate_briefing:'Generera briefing',
+    districts_hint:'Sok pa ett valdistrikt ovan for att se intelligence-kortet',no_results_found:'Inga resultat hittades',
+    district_load_error:'Kunde inte ladda distriktsdata',results_at_level:'Resultat pa niva',
+    demographics:'Demografi (SCB)',campaign_activity:'Kampanjaktivitet',no_demographics:'Ingen demografisk data tillganglig',
+    no_campaign_data:'Ingen kampanjdata for detta distrikt',median_age:'Medianlder',years:'ar',
+    median_income:'Medianinkomst',foreign_born:'Utrikesfoddda',higher_education:'Hogre utbildning',
+    unemployment:'Arbetsloshet',household_size:'Hushallsstorlek',total_voters:'Totalt valjare',
+    contacted:'Kontaktade',contact_rate_lbl:'Kontaktgrad',assign_team_soon:'Teamtilldelning kommer snart',
+    briefing_soon:'Briefingsgenerator kommer snart',
+    // Feature 2
+    call_rules:'Samtalsregler',call_queue:'Samtalskolumn',add_rule:'Lagg till regel',rule_type:'Regeltyp',
+    rule_value:'Varde',rule_outcome:'Stopp-resultat',rule_time:'Tid',active_rules:'Aktiva regler',
+    no_rules:'Inga regler annu',rule_saved:'Regel sparad',rule_deleted:'Regel borttagen',
+    confirm_delete_rule:'Ta bort denna regel?',rule_value_required:'Ange ett varde for regeln',
+    select_campaign_first:'Valj en kampanj forst',queue_stats:'Ko-statistik',total_callable:'Kan ringas',
+    remaining:'Aterstande',today_label:'Idag',this_week:'Denna vecka',outcomes:'Resultat',
+    voters_in_queue:'valjare i kon',queue_empty:'Kon ar tom - alla valjare har kontaktats!',
+    calls_lbl:'samtal',refresh:'Uppdatera',quiet_hours_msg:'Tysta timmar aktiva - inga samtal tillats nu',
+    rule_max_week:'Max samtal per vecka',rule_max_total:'Max samtal totalt',rule_auto_stop:'Auto-stopp vid resultat',
+    rule_requeue:'Aterko efter X dagar',rule_quiet_start:'Tysta timmar - Start',rule_quiet_end:'Tysta timmar - Slut',
+    // Feature 3
+    smart_searches:'Smarta sokningar',voter_list:'Valjarlista',saved_searches:'Sparade sokningar',
+    no_saved_searches:'Inga sparade sokningar',example_searches:'EXEMPELSOKNINGAR',
+    ex_promised:'Lovade hjalpa, aldrig volontar',ex_contacted_undecided:'Kontaktad 3+ ggr, obestamt',
+    ex_high_priority:'Hog prioritet, aldrig kontaktad',filter_builder:'Filterbyggare',
+    add_filter:'Lagg till filter',run_search:'Kor sokning',save_search:'Spara sokning',
+    search_results:'Sokresultat',clear:'Rensa',last_contact:'Senaste kontakt',voters_found:'valjare hittades',
+    searching:'Soker',no_voters_found:'Inga valjare hittades',save_search_modal:'Spara sokning',
+    search_name:'Sokningsnamn',search_saved:'Sokning sparad',search_deleted:'Sokning borttagen',
+    confirm_delete:'Bekrafta borttagning?',add_filter_first:'Lagg till minst ett filter',name_required:'Ange ett namn'
   },
   en: {
     nav_main:'MAIN MENU',nav_dashboard:'Dashboard',nav_map:'Map',nav_campaigns:'Campaigns',
@@ -933,7 +1274,36 @@ var T = {
     '2fa_status_off':'2FA is not enabled','2fa_recommend':'Recommended for increased security',enable_2fa:'Enable 2FA',
     active_sessions:'Active Sessions',current_session:'Current session',
     ratsit_lookup:'Lookup data from Ratsit.se',ratsit_desc:'Open Ratsit.se to see who lives in this postcode area.',
-    open_ratsit:'Open Ratsit.se for this postcode',ratsit_note:'Ratsit.se opens in a new tab. Copy info from there into the form below.'
+    open_ratsit:'Open Ratsit.se for this postcode',ratsit_note:'Ratsit.se opens in a new tab. Copy info from there into the form below.',
+    nav_districts:'Districts',districts_title:'Valdistrikt Intelligence',registered_voters:'registered voters',
+    district_code_label:'District Code',ai_score:'AI Score',assign_team:'Assign Team',generate_briefing:'Generate Briefing',
+    districts_hint:'Search for a voting district above to see the intelligence card',no_results_found:'No results found',
+    district_load_error:'Could not load district data',results_at_level:'Results at level',
+    demographics:'Demographics (SCB)',campaign_activity:'Campaign Activity',no_demographics:'No demographic data available',
+    no_campaign_data:'No campaign data for this district',median_age:'Median Age',years:'yrs',
+    median_income:'Median Income',foreign_born:'Foreign Born',higher_education:'Higher Education',
+    unemployment:'Unemployment',household_size:'Household Size',total_voters:'Total Voters',
+    contacted:'Contacted',contact_rate_lbl:'Contact Rate',assign_team_soon:'Team assignment coming soon',
+    briefing_soon:'Briefing generator coming soon',
+    call_rules:'Call Rules',call_queue:'Call Queue',add_rule:'Add Rule',rule_type:'Rule Type',
+    rule_value:'Value',rule_outcome:'Stop Outcome',rule_time:'Time',active_rules:'Active Rules',
+    no_rules:'No rules yet',rule_saved:'Rule saved',rule_deleted:'Rule deleted',
+    confirm_delete_rule:'Delete this rule?',rule_value_required:'Enter a value for the rule',
+    select_campaign_first:'Select a campaign first',queue_stats:'Queue Statistics',total_callable:'Callable',
+    remaining:'Remaining',today_label:'Today',this_week:'This Week',outcomes:'Outcomes',
+    voters_in_queue:'voters in queue',queue_empty:'Queue is empty — all voters have been contacted!',
+    calls_lbl:'calls',refresh:'Refresh',quiet_hours_msg:'Quiet hours active — no calls allowed now',
+    rule_max_week:'Max calls per week',rule_max_total:'Max calls total',rule_auto_stop:'Auto-stop at outcome',
+    rule_requeue:'Requeue after X days',rule_quiet_start:'Quiet hours start',rule_quiet_end:'Quiet hours end',
+    smart_searches:'Smart Searches',voter_list:'Voter List',saved_searches:'Saved Searches',
+    no_saved_searches:'No saved searches',example_searches:'EXAMPLE SEARCHES',
+    ex_promised:'Promised to help, never volunteered',ex_contacted_undecided:'Contacted 3+ times, still undecided',
+    ex_high_priority:'High priority, never contacted',filter_builder:'Filter Builder',
+    add_filter:'Add Filter',run_search:'Run Search',save_search:'Save Search',
+    search_results:'Search Results',clear:'Clear',last_contact:'Last Contact',voters_found:'voters found',
+    searching:'Searching',no_voters_found:'No voters found',save_search_modal:'Save Search',
+    search_name:'Search Name',search_saved:'Search saved',search_deleted:'Search deleted',
+    confirm_delete:'Confirm delete?',add_filter_first:'Add at least one filter',name_required:'Enter a name'
   },
   hi: {
     nav_main:'MUKHYA MENU',nav_dashboard:'Dashboard',nav_map:'Naksha',nav_campaigns:'Abhiyan',
@@ -961,7 +1331,36 @@ var T = {
     '2fa_status_off':'2FA saksham nahi hai','2fa_recommend':'Adhik suraksha ke liye anuganshit',enable_2fa:'2FA saksham karein',
     active_sessions:'Sakriya Sessions',current_session:'Vartaman session',
     ratsit_lookup:'Ratsit.se se data dekhein',ratsit_desc:'Is postcode kshetra mein kaun rehta hai, dekhne ke liye Ratsit.se kholein.',
-    open_ratsit:'Is postcode ke liye Ratsit.se kholein',ratsit_note:'Ratsit.se naye tab mein khulega. Vahaan se jaankaari neeche ke form mein dalein.'
+    open_ratsit:'Is postcode ke liye Ratsit.se kholein',ratsit_note:'Ratsit.se naye tab mein khulega. Vahaan se jaankaari neeche ke form mein dalein.',
+    nav_districts:'Chunav Kshetra',districts_title:'Chunav Kshetra Intelligence',registered_voters:'matdata',
+    district_code_label:'Kshetra Kood',ai_score:'AI Ank',assign_team:'Team niyukt karein',generate_briefing:'Briefing banayein',
+    districts_hint:'Koi chunav kshetra khojen',no_results_found:'Koi parinaam nahi mila',
+    district_load_error:'Kshetra data load nahi hua',results_at_level:'Parinaam niva par',
+    demographics:'Janankiya (SCB)',campaign_activity:'Abhiyan Gatividhi',no_demographics:'Koi janaankiya data nahi',
+    no_campaign_data:'Is kshetra ke liye koi abhiyan data nahi',median_age:'Median Umar',years:'saal',
+    median_income:'Median Aay',foreign_born:'Videshi Janm',higher_education:'Ucch Shiksha',
+    unemployment:'Berozgari',household_size:'Ghar ka Aakaar',total_voters:'Kul Matdata',
+    contacted:'Samparkit',contact_rate_lbl:'Sampark Dar',assign_team_soon:'Team niyukti jald aayegi',
+    briefing_soon:'Briefing jald aayegi',
+    call_rules:'Calling Niyam',call_queue:'Calling Kolumn',add_rule:'Niyam Jodein',rule_type:'Niyam Prakar',
+    rule_value:'Mulyaa',rule_outcome:'Rok Parinaam',rule_time:'Samay',active_rules:'Sakriya Niyam',
+    no_rules:'Abhi koi niyam nahi',rule_saved:'Niyam Mehfooz',rule_deleted:'Niyam Hata diya',
+    confirm_delete_rule:'Is niyam ko hatayein?',rule_value_required:'Niyam ke liye mulyaa daalen',
+    select_campaign_first:'Pehle abhiyan chunein',queue_stats:'Ko Aankaadey',total_callable:'Call kiye ja sakte',
+    remaining:'Baaki',today_label:'Aaj',this_week:'Is Hafte',outcomes:'Parinaam',
+    voters_in_queue:'matdata ko mein',queue_empty:'Ko khaali hai!',
+    calls_lbl:'calls',refresh:'Taaza karein',quiet_hours_msg:'Maut ghante sakriya - abhi koi call nahi',
+    rule_max_week:'Hafte mein max calls',rule_max_total:'Kul max calls',rule_auto_stop:'Parinaam par auto-rok',
+    rule_requeue:'X dino baad vapas',rule_quiet_start:'Maut ghante shuru',rule_quiet_end:'Maut ghante khatam',
+    smart_searches:'Smart Khoj',voter_list:'Matdata Suchi',saved_searches:'Mehfooz Khojen',
+    no_saved_searches:'Koi mehfooz khoj nahi',example_searches:'UDAAHARAN KHOJ',
+    ex_promised:'Madad ka vaada, kabhi volunteer nahi',ex_contacted_undecided:'3+ baar samparkit, abhi bhi ashnishchit',
+    ex_high_priority:'Uchi prathamikta, kabhi samparkit nahi',filter_builder:'Filter Nirmata',
+    add_filter:'Filter Jodein',run_search:'Khoj Chalayein',save_search:'Khoj Saven',
+    search_results:'Khoj Parinaam',clear:'Saaf',last_contact:'Aakhri Sampark',voters_found:'matdata mila',
+    searching:'Khoj kar raha hai',no_voters_found:'Koi matdata nahi mila',save_search_modal:'Khoj Saen',
+    search_name:'Khoj ka Naam',search_saved:'Khoj Mehfooz',search_deleted:'Khoj Hata di',
+    confirm_delete:'Hataane ki pushti karein?',add_filter_first:'Kam se kam ek filter daalen',name_required:'Naam daalen'
   },
   ur: {
     nav_main:'BUNIYADI MENU',nav_dashboard:'Dashboard',nav_map:'Naqsha',nav_campaigns:'Muhim',
@@ -989,7 +1388,36 @@ var T = {
     '2fa_status_off':'2FA faal nahi hai','2fa_recommend':'Zyada tahaffuz ke liye tavsiya',enable_2fa:'2FA faal karein',
     active_sessions:'Faal Sessions',current_session:'Maujuda session',
     ratsit_lookup:'Ratsit.se se data dekhein',ratsit_desc:'Is postcode ilaaqe mein kaun rehta hai dekhne ke liye Ratsit.se kholein.',
-    open_ratsit:'Is postcode ke liye Ratsit.se kholein',ratsit_note:'Ratsit.se naye tab mein khulega. Wahaan se maaloomaat neeche form mein darj karein.'
+    open_ratsit:'Is postcode ke liye Ratsit.se kholein',ratsit_note:'Ratsit.se naye tab mein khulega. Wahaan se maaloomaat neeche form mein darj karein.',
+    nav_districts:'Intikhaabi Halqe',districts_title:'Halqa Intelligence',registered_voters:'rajistered voters',
+    district_code_label:'Halqa Code',ai_score:'AI Score',assign_team:'Team muqarrar karein',generate_briefing:'Briefing tayaar karein',
+    districts_hint:'Upar koi intikhaabi halqa talaash karein',no_results_found:'Koi nataij nahi mile',
+    district_load_error:'Halqa data load nahi hua',results_at_level:'Nataij is satah par',
+    demographics:'Mardumshimaari (SCB)',campaign_activity:'Muhim Sargaarmi',no_demographics:'Koi mardumshimaari data nahi',
+    no_campaign_data:'Is halqe ke liye koi muhim data nahi',median_age:'Mediani Umar',years:'saal',
+    median_income:'Mediani Amdani',foreign_born:'Baahir Se Paida',higher_education:'Aala Taleem',
+    unemployment:'Berozgaari',household_size:'Ghar ka Paimaana',total_voters:'Kul Voters',
+    contacted:'Rabta hua',contact_rate_lbl:'Rabte ki Dar',assign_team_soon:'Team muqarri jald aayegi',
+    briefing_soon:'Briefing jald aayegi',
+    call_rules:'Call Qawaaed',call_queue:'Call Queue',add_rule:'Qaida Shamil Karein',rule_type:'Qaida ki Qism',
+    rule_value:'Qeemat',rule_outcome:'Rok Natija',rule_time:'Waqt',active_rules:'Faal Qawaaed',
+    no_rules:'Abhi koi qaida nahi',rule_saved:'Qaida Mehfooz',rule_deleted:'Qaida Hataa diya',
+    confirm_delete_rule:'Is qaide ko hatana hai?',rule_value_required:'Qaide ke liye qeemat darj karein',
+    select_campaign_first:'Pehle muhim chunein',queue_stats:'Queue Statistics',total_callable:'Call ho sakte',
+    remaining:'Baqi',today_label:'Aaj',this_week:'Is Hafte',outcomes:'Nataij',
+    voters_in_queue:'voters queue mein',queue_empty:'Queue khaali hai!',
+    calls_lbl:'calls',refresh:'Taaza karein',quiet_hours_msg:'Khamosh auqaat — abhi call nahi ho sakti',
+    rule_max_week:'Hafte mein max calls',rule_max_total:'Total max calls',rule_auto_stop:'Natije par auto-rok',
+    rule_requeue:'X din baad wapas',rule_quiet_start:'Khamosh auqaat shuru',rule_quiet_end:'Khamosh auqaat khatam',
+    smart_searches:'Smart Talaash',voter_list:'Voters ki Fehrist',saved_searches:'Mehfooz Talaashah',
+    no_saved_searches:'Koi mehfooz talaash nahi',example_searches:'MISAALI TALAASHAH',
+    ex_promised:'Madad ka wada, kabhi volunteer nahi hua',ex_contacted_undecided:'3+ baar rabta, abhi bhi ghair faisla',
+    ex_high_priority:'Aali Ahmiyat, kabhi rabta nahi',filter_builder:'Filter Nirmata',
+    add_filter:'Filter Shamil Karein',run_search:'Talaash Chalayein',save_search:'Talaash Mehfooz Karein',
+    search_results:'Talaash Nataij',clear:'Saaf Karein',last_contact:'Aakhri Rabta',voters_found:'voters mile',
+    searching:'Talaash ho raha hai',no_voters_found:'Koi voter nahi mila',save_search_modal:'Talaash Mehfooz Karein',
+    search_name:'Talaash ka Naam',search_saved:'Talaash Mehfooz',search_deleted:'Talaash Hataa di',
+    confirm_delete:'Mitaane ki tasdeeq?',add_filter_first:'Kam se kam ek filter shamil karein',name_required:'Naam darj karein'
   }
 };
 
@@ -1101,6 +1529,7 @@ function navigateTo(page){
   switch(page){
     case 'dashboard': loadDashboard(); break;
     case 'map': initMap(); break;
+    case 'districts': loadDistricts(); break;
     case 'campaigns': loadCampaigns(); break;
     case 'voters': loadVoters(); break;
     case 'fieldops': loadFieldOps(); break;
@@ -1944,6 +2373,716 @@ async function loadAdminUsers(){
 
 function triggerValImport(){ showAlert('Val.se spider will be implemented in the next phase','info'); }
 window.triggerValImport = triggerValImport;
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 1: VALDISTRIKT INTELLIGENCE
+// ═══════════════════════════════════════════════════════════
+
+var _districtSearchTimer = null;
+var _districtResultsList = [];
+var _intelCompareChart = null;
+
+function onDistrictSearchInput(){
+  clearTimeout(_districtSearchTimer);
+  var q = document.getElementById('districtSearchInput').value.trim();
+  if(q.length < 2){
+    document.getElementById('districtResultsDropdown').classList.remove('open');
+    return;
+  }
+  _districtSearchTimer = setTimeout(function(){ performDistrictSearch(q); }, 280);
+}
+window.onDistrictSearchInput = onDistrictSearchInput;
+
+function onDistrictSearchKey(e){
+  if(e.key === 'Escape'){ document.getElementById('districtResultsDropdown').classList.remove('open'); }
+}
+window.onDistrictSearchKey = onDistrictSearchKey;
+
+async function performDistrictSearch(q){
+  try {
+    var data = await apiFetch('/districts/search?q='+encodeURIComponent(q));
+    _districtResultsList = data.data || [];
+    var dropdown = document.getElementById('districtResultsDropdown');
+    if(_districtResultsList.length === 0){
+      dropdown.innerHTML = '<div style="padding:14px 16px;color:var(--text-muted);font-size:.85rem">'+t('no_results_found')+'</div>';
+    } else {
+      var html = '';
+      _districtResultsList.forEach(function(d){
+        html += '<div class="district-result-item" onclick="loadDistrictIntelligence(\''+d.code+'\')">';
+        html += '<div class="district-result-name">'+escapeHtml(d.name)+'</div>';
+        html += '<div class="district-result-meta">'+escapeHtml(d.municipality_name||'')+(d.county_name?' — '+escapeHtml(d.county_name):'')+(d.registered_voters?' · '+d.registered_voters.toLocaleString()+' '+t('registered_voters'):'')+'</div>';
+        html += '</div>';
+      });
+      dropdown.innerHTML = html;
+    }
+    dropdown.classList.add('open');
+  } catch(e){ console.error('District search error:', e); }
+}
+
+async function loadDistrictIntelligence(code){
+  document.getElementById('districtResultsDropdown').classList.remove('open');
+  document.getElementById('districtEmptyState').style.display = 'none';
+  document.getElementById('districtIntelCard').style.display = 'none';
+
+  try {
+    var data = await apiFetch('/districts/'+encodeURIComponent(code)+'/intelligence');
+    renderDistrictIntelCard(data);
+    document.getElementById('districtIntelCard').style.display = '';
+  } catch(e){
+    showAlert(t('district_load_error'), 'error');
+    document.getElementById('districtEmptyState').style.display = '';
+  }
+}
+window.loadDistrictIntelligence = loadDistrictIntelligence;
+
+function renderDistrictIntelCard(data){
+  var d = data.district;
+  document.getElementById('districtSearchInput').value = d.name;
+  document.getElementById('intelDistrictName').textContent = d.name;
+  document.getElementById('intelDistrictSub').textContent = t('district_code_label')+': '+d.code;
+  document.getElementById('intelRegistered').textContent = d.registered_voters ? d.registered_voters.toLocaleString() : '-';
+  document.getElementById('intelMunicipality').textContent = d.municipality_name || '-';
+  document.getElementById('intelCounty').textContent = d.county_name || '-';
+
+  // AI score badge
+  var score = data.ai_score || 0;
+  var scoreEl = document.getElementById('intelScoreBadge');
+  var scoreColor = score >= 70 ? 'var(--supporter)' : score >= 45 ? 'var(--soft-yes)' : 'var(--opposition)';
+  scoreEl.style.borderColor = scoreColor;
+  scoreEl.style.color = scoreColor;
+  document.getElementById('intelScoreVal').textContent = score;
+
+  // Election results
+  var r2022 = (data.election_results && data.election_results['2022']) || [];
+  var r2018 = (data.election_results && data.election_results['2018']) || [];
+  renderResultBars('intelBars2022', r2022);
+  renderResultBars('intelBars2018', r2018);
+  renderIntelCompareChart(r2022, r2018);
+
+  var noteEl = document.getElementById('intelResultsNote');
+  if(data.election_results && data.election_results.results_level && data.election_results.results_level !== 'district'){
+    noteEl.textContent = t('results_at_level')+': '+data.election_results.results_level;
+  } else { noteEl.textContent = ''; }
+
+  // Demographics
+  renderIntelDemographics(data.demographics);
+
+  // Campaign stats
+  renderIntelCampaignStats(data.campaign_stats);
+
+  // Store for quick actions
+  window._currentIntelDistrict = data;
+}
+
+function renderIntelCompareChart(r2022, r2018){
+  if(!r2022.length && !r2018.length) return;
+  var parties = r2022.length ? r2022.map(function(r){return r.party_code;}) : r2018.map(function(r){return r.party_code;});
+  var d22 = parties.map(function(p){ var f=r2022.find(function(r){return r.party_code===p}); return f?f.vote_percentage||0:0; });
+  var d18 = parties.map(function(p){ var f=r2018.find(function(r){return r.party_code===p}); return f?f.vote_percentage||0:0; });
+  var ctx = document.getElementById('intelCompareChart');
+  if(_intelCompareChart) _intelCompareChart.destroy();
+  _intelCompareChart = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels:parties,
+      datasets:[
+        {label:'2022',data:d22,backgroundColor:parties.map(function(p){return PARTY_COLORS[p]||'#888';}),borderRadius:3,borderSkipped:false},
+        {label:'2018',data:d18,backgroundColor:parties.map(function(p){var c=PARTY_COLORS[p]||'#888';return c+'60';}),borderRadius:3,borderSkipped:false}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#7a8599',boxWidth:12,padding:8,font:{size:10}}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+c.raw.toFixed(1)+'%'}}}},
+      scales:{y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#7a8599',callback:function(v){return v+'%'},font:{size:10}}},x:{grid:{display:false},ticks:{color:'#7a8599',font:{size:10}}}}
+    }
+  });
+}
+
+function renderIntelDemographics(demo){
+  var el = document.getElementById('intelDemographics');
+  if(!demo){
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:.85rem">'+t('no_demographics')+'</div>';
+    return;
+  }
+  var items = [
+    {key:'median_age',label:t('median_age'),val:demo.median_age?demo.median_age.toFixed(0)+' '+t('years'):'-',icon:'fa-birthday-cake'},
+    {key:'median_income',label:t('median_income'),val:demo.median_income?Math.round(demo.median_income/1000)+'k SEK':'-',icon:'fa-coins'},
+    {key:'foreign_born_pct',label:t('foreign_born'),val:demo.foreign_born_pct?demo.foreign_born_pct.toFixed(1)+'%':'-',icon:'fa-globe'},
+    {key:'higher_education_pct',label:t('higher_education'),val:demo.higher_education_pct?demo.higher_education_pct.toFixed(1)+'%':'-',icon:'fa-graduation-cap'},
+    {key:'unemployment_pct',label:t('unemployment'),val:demo.unemployment_pct?demo.unemployment_pct.toFixed(1)+'%':'-',icon:'fa-briefcase'},
+    {key:'avg_household',label:t('household_size'),val:demo.avg_household_size?demo.avg_household_size.toFixed(1):'-',icon:'fa-home'}
+  ];
+  var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px">';
+  items.forEach(function(item){
+    html += '<div style="padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:8px">';
+    html += '<div style="font-size:.68rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px"><i class="fas '+item.icon+'" style="margin-right:4px;width:12px;text-align:center"></i>'+item.label+'</div>';
+    html += '<div style="font-size:1rem;font-weight:700;font-family:var(--mono);margin-top:4px;color:var(--text-primary)">'+item.val+'</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderIntelCampaignStats(stats){
+  var el = document.getElementById('intelCampaignStats');
+  if(!stats || stats.total_voters === 0){
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:.85rem">'+t('no_campaign_data')+'</div>';
+    return;
+  }
+  var contactRate = stats.total_voters > 0 ? Math.round((stats.contacted_voters / stats.total_voters)*100) : 0;
+  var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:12px">';
+  var cards = [
+    {label:t('total_voters'),val:stats.total_voters||0,icon:'fa-users',color:'var(--text-primary)'},
+    {label:t('contacted'),val:stats.contacted_voters||0,icon:'fa-phone-alt',color:'var(--accent)'},
+    {label:t('contact_rate_lbl'),val:contactRate+'%',icon:'fa-percent',color:contactRate>50?'var(--supporter)':'var(--soft-yes)'},
+    {label:'Supporters',val:stats.supporters||0,icon:'fa-check-circle',color:'var(--supporter)'},
+    {label:'Soft Yes',val:stats.soft_yes||0,icon:'fa-thumbs-up',color:'var(--soft-yes)'},
+    {label:'Undecided',val:stats.undecided||0,icon:'fa-question-circle',color:'var(--undecided)'}
+  ];
+  cards.forEach(function(c){
+    html += '<div style="padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:8px">';
+    html += '<div style="font-size:.68rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px"><i class="fas '+c.icon+'" style="margin-right:4px"></i>'+c.label+'</div>';
+    html += '<div style="font-size:1.1rem;font-weight:700;font-family:var(--mono);margin-top:4px;color:'+c.color+'">'+c.val+'</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  // Progress bar
+  html += '<div style="background:rgba(255,255,255,0.05);border-radius:4px;height:8px;overflow:hidden">';
+  html += '<div style="height:100%;width:'+contactRate+'%;background:var(--accent);border-radius:4px;transition:width .6s ease"></div>';
+  html += '</div>';
+  html += '<div style="font-size:.72rem;color:var(--text-muted);margin-top:4px">'+contactRate+'% '+t('contact_rate_lbl')+'</div>';
+  el.innerHTML = html;
+}
+
+function intelActionAssignTeam(){ showAlert(t('assign_team_soon'), 'info'); }
+window.intelActionAssignTeam = intelActionAssignTeam;
+function intelActionBriefing(){ showAlert(t('briefing_soon'), 'info'); }
+window.intelActionBriefing = intelActionBriefing;
+function intelActionCall(){
+  navigateTo('fieldops');
+  showFieldTab('queue');
+}
+window.intelActionCall = intelActionCall;
+
+function loadDistricts(){ /* page init — nothing needed */ }
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 2: CALL RULES & QUEUE
+// ═══════════════════════════════════════════════════════════
+
+var _callRulesCache = [];
+
+function showFieldTab(type){
+  _fieldType = type === 'phone' || type === 'door' ? type : 'phone';
+  // Tab buttons
+  var tabs = ['phone','door','rules','queue'];
+  document.querySelectorAll('#page-fieldops .tab-btn').forEach(function(b,i){
+    b.classList.toggle('active', tabs[i] === type);
+  });
+  // Panels
+  var callingPanel = document.getElementById('fieldops-calling-panel');
+  var rulesPanel = document.getElementById('fieldops-rules-panel');
+  var queuePanel = document.getElementById('fieldops-queue-panel');
+  callingPanel.style.display = (type === 'phone' || type === 'door') ? '' : 'none';
+  rulesPanel.style.display = type === 'rules' ? '' : 'none';
+  queuePanel.style.display = type === 'queue' ? '' : 'none';
+
+  if(type === 'rules') loadCallRules();
+  else if(type === 'queue') loadCallQueue();
+  else loadNextVoter();
+}
+window.showFieldTab = showFieldTab;
+
+function onRuleTypeChange(){
+  var type = document.getElementById('newRuleType').value;
+  var isOutcome = type === 'auto_stop_outcome';
+  var isTime = type === 'quiet_hours_start' || type === 'quiet_hours_end';
+  document.getElementById('ruleValueGroup').style.display = (isOutcome || isTime) ? 'none' : '';
+  document.getElementById('ruleOutcomeGroup').style.display = isOutcome ? '' : 'none';
+  document.getElementById('ruleTimeGroup').style.display = isTime ? '' : 'none';
+}
+window.onRuleTypeChange = onRuleTypeChange;
+
+async function loadCallRules(){
+  var campaignId = document.getElementById('fieldOpsCampaign').value;
+  if(!campaignId){ document.getElementById('callRulesList').innerHTML = '<div style="color:var(--text-muted);font-size:.85rem;padding:12px">'+t('select_campaign_first')+'</div>'; return; }
+  try {
+    var data = await apiFetch('/call-rules/'+campaignId);
+    _callRulesCache = data.data || [];
+    renderCallRules(_callRulesCache);
+    loadQueueStats(campaignId);
+  } catch(e){ console.error('Load rules error:', e); }
+}
+
+function renderCallRules(rules){
+  var el = document.getElementById('callRulesList');
+  if(rules.length === 0){
+    el.innerHTML = '<div class="empty-state"><i class="fas fa-sliders-h" style="font-size:1.5rem"></i><p style="margin-top:8px" data-t="no_rules">'+t('no_rules')+'</p></div>';
+    return;
+  }
+  var RULE_ICONS = {
+    max_per_week:'fa-calendar-week', max_total:'fa-hashtag',
+    auto_stop_outcome:'fa-stop-circle', requeue_days:'fa-redo',
+    quiet_hours_start:'fa-moon', quiet_hours_end:'fa-moon'
+  };
+  var RULE_LABELS = {
+    max_per_week:t('rule_max_week'), max_total:t('rule_max_total'),
+    auto_stop_outcome:t('rule_auto_stop'), requeue_days:t('rule_requeue'),
+    quiet_hours_start:t('rule_quiet_start'), quiet_hours_end:t('rule_quiet_end')
+  };
+  var html = '';
+  rules.forEach(function(r){
+    var icon = RULE_ICONS[r.rule_type] || 'fa-cog';
+    var label = RULE_LABELS[r.rule_type] || r.rule_type;
+    html += '<div class="rule-card">';
+    html += '<div class="rule-card-icon"><i class="fas '+icon+'"></i></div>';
+    html += '<div class="rule-card-body"><div class="rule-card-title">'+label+'</div><div class="rule-card-value">'+escapeHtml(r.rule_value)+'</div></div>';
+    html += '<button class="btn btn-danger btn-sm" onclick="deleteCallRule(\''+r.id+'\')"><i class="fas fa-trash"></i></button>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+async function saveCallRule(){
+  var campaignId = document.getElementById('fieldOpsCampaign').value;
+  if(!campaignId){ showAlert(t('select_campaign_first'), 'error'); return; }
+  var ruleType = document.getElementById('newRuleType').value;
+  var isOutcome = ruleType === 'auto_stop_outcome';
+  var isTime = ruleType === 'quiet_hours_start' || ruleType === 'quiet_hours_end';
+  var ruleValue;
+  if(isOutcome) ruleValue = document.getElementById('newRuleOutcome').value;
+  else if(isTime) ruleValue = document.getElementById('newRuleTime').value;
+  else ruleValue = document.getElementById('newRuleValue').value.trim();
+  if(!ruleValue){ showAlert(t('rule_value_required'), 'warning'); return; }
+  try {
+    await apiFetch('/call-rules', {method:'POST', body:JSON.stringify({campaign_id:campaignId, rule_type:ruleType, rule_value:ruleValue})});
+    showAlert(t('rule_saved'), 'success');
+    document.getElementById('newRuleValue').value = '';
+    loadCallRules();
+  } catch(e){ showAlert(e.message, 'error'); }
+}
+window.saveCallRule = saveCallRule;
+
+async function deleteCallRule(id){
+  if(!confirm(t('confirm_delete_rule'))) return;
+  try {
+    await apiFetch('/call-rules/'+id, {method:'DELETE'});
+    showAlert(t('rule_deleted'), 'success');
+    loadCallRules();
+  } catch(e){ showAlert(e.message, 'error'); }
+}
+window.deleteCallRule = deleteCallRule;
+
+async function loadQueueStats(campaignId){
+  try {
+    var data = await apiFetch('/call-queue/stats/'+campaignId);
+    var el = document.getElementById('queueStatsContent');
+    var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+    var cards = [
+      {label:t('total_callable'),val:data.total_callable||0,icon:'fa-users'},
+      {label:t('contacted'),val:data.contacted||0,icon:'fa-phone-alt'},
+      {label:t('remaining'),val:data.remaining||0,icon:'fa-inbox'},
+      {label:t('contact_rate_lbl'),val:(data.contact_rate||0)+'%',icon:'fa-percent'},
+      {label:t('today_label'),val:data.today_contacts||0,icon:'fa-sun'},
+      {label:t('this_week'),val:data.week_contacts||0,icon:'fa-calendar-week'}
+    ];
+    cards.forEach(function(c){
+      html += '<div style="padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px">';
+      html += '<div style="font-size:.68rem;text-transform:uppercase;color:var(--text-muted)"><i class="fas '+c.icon+'" style="margin-right:4px"></i>'+c.label+'</div>';
+      html += '<div style="font-size:.95rem;font-weight:700;font-family:var(--mono);margin-top:3px">'+c.val+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    if(data.outcomes && data.outcomes.length > 0){
+      html += '<div style="margin-top:12px"><div style="font-size:.72rem;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">'+t('outcomes')+'</div>';
+      data.outcomes.forEach(function(o){
+        var cls = 'badge-'+(o.outcome||'unknown');
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;font-size:.82rem"><span class="badge '+cls+'">'+o.outcome+'</span><span style="font-family:var(--mono)">'+o.count+'</span></div>';
+      });
+      html += '</div>';
+    }
+    el.innerHTML = html;
+  } catch(e){}
+}
+
+async function loadCallQueue(){
+  var campaignId = document.getElementById('fieldOpsCampaign').value;
+  if(!campaignId){
+    document.getElementById('callQueueList').innerHTML = '<div style="padding:20px;color:var(--text-muted);text-align:center">'+t('select_campaign_first')+'</div>';
+    return;
+  }
+  try {
+    var data = await apiFetch('/call-queue/'+campaignId+'?limit=30');
+    // Quiet hours check
+    var quietWarn = document.getElementById('quietHoursWarning');
+    if(data.quiet_hours){
+      quietWarn.style.display = '';
+      document.getElementById('quietHoursText').textContent = data.message || t('quiet_hours_msg');
+    } else { quietWarn.style.display = 'none'; }
+
+    var voters = data.data || [];
+    document.getElementById('queueMetaText').textContent = voters.length + ' ' + t('voters_in_queue');
+    var el = document.getElementById('callQueueList');
+    if(voters.length === 0){
+      el.innerHTML = '<div class="empty-state" style="padding:40px"><i class="fas fa-check-circle" style="font-size:2rem;color:var(--supporter)"></i><p style="margin-top:12px">'+t('queue_empty')+'</p></div>';
+      return;
+    }
+    var html = '';
+    voters.forEach(function(v){
+      var initials = ((v.first_name||'?').charAt(0)+(v.last_name||'?').charAt(0)).toUpperCase();
+      var statusClass = 'badge-'+(v.support_status||'unknown');
+      html += '<div class="queue-voter-row" onclick="callQueueVoter(\''+v.id+'\',\''+campaignId+'\')">';
+      html += '<div class="queue-voter-avatar">'+initials+'</div>';
+      html += '<div style="flex:1;min-width:0">';
+      html += '<div style="font-weight:600;font-size:.9rem">'+escapeHtml(v.full_name||((v.first_name||'')+' '+(v.last_name||'')).trim()||'-')+'</div>';
+      html += '<div style="font-size:.75rem;color:var(--text-muted)">'+(v.city||v.postcode||'-')+'</div>';
+      html += '</div>';
+      html += '<div style="text-align:right">';
+      html += '<span class="badge '+statusClass+'" style="margin-bottom:4px">'+((v.support_status||'unknown'))+'</span>';
+      html += '<div style="font-size:.7rem;color:var(--text-muted)"><i class="fas fa-phone-alt" style="margin-right:3px"></i>'+(v.contact_count||0)+' '+t('calls_lbl')+'</div>';
+      html += '</div>';
+      html += '</div>';
+    });
+    el.innerHTML = html;
+  } catch(e){ console.error('Load queue error:', e); }
+}
+window.loadCallQueue = loadCallQueue;
+
+function callQueueVoter(voterId, campaignId){
+  // Switch to calling panel and show voter
+  showFieldTab('phone');
+  // Find voter and show it (select from voters for current campaign)
+  apiFetch('/voters/'+voterId).then(function(data){
+    var voter = data.voter || data;
+    if(!voter || !voter.id) return;
+    _currentVoter = voter;
+    document.getElementById('vcName').textContent = voter.full_name || ((voter.first_name||'')+' '+(voter.last_name||'')).trim() || '-';
+    document.getElementById('vcMeta').textContent = (voter.city||'') + (voter.district_id ? ' | '+voter.district_id : '');
+    document.getElementById('vcAddress').textContent = voter.address || '-';
+    document.getElementById('vcPostcode').textContent = voter.postcode || '-';
+    document.getElementById('vcPhone').textContent = voter.phone || '-';
+    document.getElementById('vcContacts').textContent = voter.contact_count || 0;
+    document.getElementById('vcAiScore').textContent = voter.ai_support_score ? voter.ai_support_score.toFixed(1) : '-';
+    document.getElementById('vcTalkingPoints').textContent = voter.ai_talking_points || '-';
+    var statusClass = 'badge-'+(voter.support_status||'unknown');
+    document.getElementById('vcBadge').innerHTML = '<span class="badge '+statusClass+'">'+(voter.support_status||'unknown')+'</span>';
+    loadContactHistory(voter.id);
+  }).catch(function(e){ console.error('Load queue voter error:', e); });
+}
+window.callQueueVoter = callQueueVoter;
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 3: SMART SEARCHES
+// ═══════════════════════════════════════════════════════════
+
+var _filterRows = [];
+var _smartSearchResults = [];
+var _savedSearches = [];
+var _filterRowId = 0;
+
+var FILTER_FIELDS = [
+  {val:'support_status',label:'Support Status'},
+  {val:'contact_count',label:'Contact Count'},
+  {val:'last_contacted_at',label:'Last Contacted'},
+  {val:'is_contacted',label:'Is Contacted'},
+  {val:'age_group',label:'Age Group'},
+  {val:'tags',label:'Tags'},
+  {val:'ai_priority_rank',label:'AI Priority Rank'},
+  {val:'district_code',label:'District Code'},
+  {val:'municipality',label:'Municipality'},
+  {val:'campaign_id',label:'Campaign'}
+];
+
+var FILTER_OPS_BY_FIELD = {
+  support_status:[{val:'eq',label:'='},{val:'neq',label:'!='},{val:'in',label:'in (comma separated)'}],
+  contact_count:[{val:'eq',label:'='},{val:'gt',label:'>'},{val:'lt',label:'<'},{val:'between',label:'between'}],
+  last_contacted_at:[{val:'null',label:'never contacted'},{val:'not_null',label:'has been contacted'},{val:'before',label:'before date'},{val:'after',label:'after date'},{val:'days_ago_gt',label:'more than X days ago'},{val:'days_ago_lt',label:'less than X days ago'}],
+  is_contacted:[{val:'eq',label:'= (1 or 0)'}],
+  age_group:[{val:'eq',label:'='},{val:'in',label:'in (comma separated)'}],
+  tags:[{val:'contains',label:'contains'},{val:'not_contains',label:'does not contain'}],
+  ai_priority_rank:[{val:'lt',label:'<'},{val:'gt',label:'>'},{val:'between',label:'between'}],
+  district_code:[{val:'eq',label:'='}],
+  municipality:[{val:'eq',label:'='}],
+  campaign_id:[{val:'eq',label:'='}]
+};
+
+function showVotersTab(tab){
+  document.querySelectorAll('#page-voters .tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('voters-list-panel').classList.remove('active');
+  document.getElementById('voters-smart-panel').classList.remove('active');
+  if(tab === 'list'){
+    document.getElementById('votersTabList').classList.add('active');
+    document.getElementById('voters-list-panel').classList.add('active');
+    loadVoters();
+  } else {
+    document.getElementById('votersTabSmart').classList.add('active');
+    document.getElementById('voters-smart-panel').classList.add('active');
+    loadSavedSearches();
+    if(_filterRows.length === 0) addFilterRow();
+  }
+}
+window.showVotersTab = showVotersTab;
+
+function addFilterRow(){
+  _filterRowId++;
+  var id = 'fr'+_filterRowId;
+  _filterRows.push(id);
+  var container = document.getElementById('filterRowsContainer');
+
+  var fieldOpts = FILTER_FIELDS.map(function(f){
+    return '<option value="'+f.val+'">'+f.label+'</option>';
+  }).join('');
+
+  var row = document.createElement('div');
+  row.className = 'filter-row';
+  row.id = id;
+  row.innerHTML =
+    '<select onchange="onFilterFieldChange(\''+id+'\')" style="min-width:160px">'+fieldOpts+'</select>'+
+    '<select id="'+id+'-op" style="min-width:140px"></select>'+
+    '<input type="text" id="'+id+'-val" placeholder="Value...">'+
+    '<input type="text" id="'+id+'-val2" placeholder="Value 2..." style="display:none">'+
+    '<button class="btn btn-ghost" onclick="removeFilterRow(\''+id+'\')" style="color:var(--opposition);padding:6px 8px"><i class="fas fa-times"></i></button>';
+
+  container.appendChild(row);
+  onFilterFieldChange(id);
+}
+window.addFilterRow = addFilterRow;
+
+function removeFilterRow(id){
+  var idx = _filterRows.indexOf(id);
+  if(idx >= 0) _filterRows.splice(idx, 1);
+  var el = document.getElementById(id);
+  if(el) el.remove();
+}
+window.removeFilterRow = removeFilterRow;
+
+function onFilterFieldChange(rowId){
+  var row = document.getElementById(rowId);
+  if(!row) return;
+  var field = row.querySelector('select').value;
+  var opSel = document.getElementById(rowId+'-op');
+  var ops = FILTER_OPS_BY_FIELD[field] || [{val:'eq',label:'='}];
+  opSel.innerHTML = ops.map(function(o){ return '<option value="'+o.val+'">'+o.label+'</option>'; }).join('');
+  onFilterOpChange(rowId);
+}
+window.onFilterFieldChange = onFilterFieldChange;
+
+function onFilterOpChange(rowId){
+  var opSel = document.getElementById(rowId+'-op');
+  var val2 = document.getElementById(rowId+'-val2');
+  if(!opSel || !val2) return;
+  val2.style.display = opSel.value === 'between' ? '' : 'none';
+}
+
+function getFiltersFromRows(){
+  var filters = [];
+  _filterRows.forEach(function(id){
+    var row = document.getElementById(id);
+    if(!row) return;
+    var field = row.querySelector('select').value;
+    var op = document.getElementById(id+'-op').value;
+    var val = document.getElementById(id+'-val').value.trim();
+    var val2El = document.getElementById(id+'-val2');
+    var val2 = val2El ? val2El.value.trim() : '';
+    if(op === 'null' || op === 'not_null') val = '';
+    if(!val && op !== 'null' && op !== 'not_null') return;
+    // Handle 'in' — split by comma
+    if(op === 'in' && val) val = val.split(',').map(function(v){ return v.trim(); });
+    filters.push({field:field, operator:op, value:val, value2:val2||null});
+  });
+  return filters;
+}
+
+function clearFilters(){
+  _filterRows = [];
+  _filterRowId = 0;
+  document.getElementById('filterRowsContainer').innerHTML = '';
+  document.getElementById('smartResultsBody').innerHTML = '';
+  document.getElementById('smartSearchResultCount').textContent = '';
+  addFilterRow();
+}
+window.clearFilters = clearFilters;
+
+async function executeSmartSearch(){
+  var filters = getFiltersFromRows();
+  if(filters.length === 0){ showAlert(t('add_filter_first'), 'warning'); return; }
+  try {
+    document.getElementById('smartSearchResultCount').textContent = t('searching')+'...';
+    var data = await apiFetch('/smart-searches/execute', {method:'POST', body:JSON.stringify({filters:filters, limit:100})});
+    _smartSearchResults = data.data || [];
+    document.getElementById('smartSearchResultCount').textContent = data.total + ' ' + t('voters_found');
+    renderSmartResults(_smartSearchResults);
+  } catch(e){ showAlert(e.message, 'error'); }
+}
+window.executeSmartSearch = executeSmartSearch;
+
+function renderSmartResults(voters){
+  var tbody = document.getElementById('smartResultsBody');
+  if(voters.length === 0){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)">'+t('no_voters_found')+'</td></tr>';
+    return;
+  }
+  var html = '';
+  voters.forEach(function(v){
+    var statusClass = 'badge-'+(v.support_status||'unknown');
+    var lastContact = v.last_contacted_at ? new Date(v.last_contacted_at).toLocaleDateString() : '-';
+    html += '<tr>';
+    html += '<td><strong>'+escapeHtml(v.full_name||((v.first_name||'')+' '+(v.last_name||'')).trim()||'-')+'</strong>';
+    if(v.city) html += '<div style="font-size:.72rem;color:var(--text-muted)">'+escapeHtml(v.city)+'</div>';
+    html += '</td>';
+    html += '<td><span class="badge '+statusClass+'">'+(v.support_status||'unknown')+'</span></td>';
+    html += '<td style="font-family:var(--mono)">'+(v.contact_count||0)+'</td>';
+    html += '<td style="font-size:.82rem;color:var(--text-muted)">'+lastContact+'</td>';
+    html += '<td style="font-family:var(--mono);color:var(--accent)">'+(v.ai_priority_rank||'-')+'</td>';
+    html += '<td><button class="btn btn-ghost btn-sm" onclick="editVoter(\''+v.id+'\')"><i class="fas fa-pen"></i></button></td>';
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+function openNewSmartSearch(){ openModal('saveSmartSearchModal'); }
+window.openNewSmartSearch = openNewSmartSearch;
+
+function saveSmartSearch(){
+  var filters = getFiltersFromRows();
+  if(filters.length === 0){ showAlert(t('add_filter_first'), 'warning'); return; }
+  openModal('saveSmartSearchModal');
+}
+window.saveSmartSearch = saveSmartSearch;
+
+async function confirmSaveSmartSearch(){
+  var name = document.getElementById('ssName').value.trim();
+  var desc = document.getElementById('ssDesc').value.trim();
+  if(!name){ showAlert(t('name_required'), 'warning'); return; }
+  var filters = getFiltersFromRows();
+  if(filters.length === 0){ showAlert(t('add_filter_first'), 'warning'); return; }
+  try {
+    await apiFetch('/smart-searches', {method:'POST', body:JSON.stringify({name:name, description:desc||null, filters_json:filters})});
+    closeModal('saveSmartSearchModal');
+    document.getElementById('ssName').value = '';
+    document.getElementById('ssDesc').value = '';
+    showAlert(t('search_saved'), 'success');
+    loadSavedSearches();
+  } catch(e){ showAlert(e.message, 'error'); }
+}
+window.confirmSaveSmartSearch = confirmSaveSmartSearch;
+
+async function loadSavedSearches(){
+  try {
+    var data = await apiFetch('/smart-searches');
+    _savedSearches = data.data || [];
+    var el = document.getElementById('savedSearchesList');
+    if(_savedSearches.length === 0){
+      el.innerHTML = '<div class="empty-state" style="padding:24px"><i class="fas fa-filter" style="font-size:1.5rem"></i><p style="margin-top:8px;font-size:.82rem">'+t('no_saved_searches')+'</p></div>';
+      return;
+    }
+    var html = '';
+    _savedSearches.forEach(function(s){
+      html += '<div class="saved-search-item" onclick="runSavedSearch(\''+s.id+'\')">';
+      html += '<div style="min-width:0">';
+      html += '<div style="font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escapeHtml(s.name)+'</div>';
+      if(s.description) html += '<div style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escapeHtml(s.description)+'</div>';
+      html += '</div>';
+      html += '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">';
+      if(s.result_count > 0) html += '<span class="saved-search-count">'+s.result_count+'</span>';
+      html += '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();deleteSavedSearch(\''+s.id+'\')" style="color:var(--opposition);padding:4px 6px"><i class="fas fa-trash"></i></button>';
+      html += '</div>';
+      html += '</div>';
+    });
+    el.innerHTML = html;
+  } catch(e){}
+}
+
+async function runSavedSearch(id){
+  try {
+    var data = await apiFetch('/smart-searches/'+id+'/results?limit=100');
+    _smartSearchResults = data.data || [];
+    document.getElementById('smartSearchResultCount').textContent = data.total + ' ' + t('voters_found');
+    renderSmartResults(_smartSearchResults);
+    // Update count in sidebar
+    loadSavedSearches();
+    // Load filters from saved search
+    var search = data.search;
+    if(search && search.filters_json){
+      try {
+        var filters = typeof search.filters_json === 'string' ? JSON.parse(search.filters_json) : search.filters_json;
+        loadFiltersIntoBuilder(filters);
+      } catch(e){}
+    }
+  } catch(e){ showAlert(e.message, 'error'); }
+}
+window.runSavedSearch = runSavedSearch;
+
+function loadFiltersIntoBuilder(filters){
+  _filterRows = [];
+  _filterRowId = 0;
+  document.getElementById('filterRowsContainer').innerHTML = '';
+  if(!Array.isArray(filters) || filters.length === 0){ addFilterRow(); return; }
+  filters.forEach(function(f){
+    _filterRowId++;
+    var id = 'fr'+_filterRowId;
+    _filterRows.push(id);
+    var container = document.getElementById('filterRowsContainer');
+    var fieldOpts = FILTER_FIELDS.map(function(ff){
+      return '<option value="'+ff.val+'"'+(ff.val===f.field?' selected':'')+'>'+ff.label+'</option>';
+    }).join('');
+    var ops = FILTER_OPS_BY_FIELD[f.field] || [{val:'eq',label:'='}];
+    var opOpts = ops.map(function(o){
+      return '<option value="'+o.val+'"'+(o.val===f.operator?' selected':'')+'>'+o.label+'</option>';
+    }).join('');
+    var val = Array.isArray(f.value) ? f.value.join(', ') : (f.value||'');
+    var val2 = f.value2 || '';
+    var row = document.createElement('div');
+    row.className = 'filter-row';
+    row.id = id;
+    row.innerHTML =
+      '<select onchange="onFilterFieldChange(\''+id+'\')" style="min-width:160px">'+fieldOpts+'</select>'+
+      '<select id="'+id+'-op" style="min-width:140px">'+opOpts+'</select>'+
+      '<input type="text" id="'+id+'-val" value="'+escapeHtml(val)+'" placeholder="Value...">'+
+      '<input type="text" id="'+id+'-val2" value="'+escapeHtml(val2)+'" placeholder="Value 2..." style="display:'+(f.operator==='between'?'':'none')+'">'+
+      '<button class="btn btn-ghost" onclick="removeFilterRow(\''+id+'\')" style="color:var(--opposition);padding:6px 8px"><i class="fas fa-times"></i></button>';
+    container.appendChild(row);
+  });
+}
+
+async function deleteSavedSearch(id){
+  if(!confirm(t('confirm_delete'))) return;
+  try {
+    await apiFetch('/smart-searches/'+id, {method:'DELETE'});
+    showAlert(t('search_deleted'), 'success');
+    loadSavedSearches();
+  } catch(e){ showAlert(e.message, 'error'); }
+}
+window.deleteSavedSearch = deleteSavedSearch;
+
+function loadExampleSearch(type){
+  var EXAMPLES = {
+    promised_never_volunteered:[
+      {field:'support_status',operator:'in',value:['soft_yes','supporter']},
+      {field:'contact_count',operator:'gt',value:'0'},
+      {field:'tags',operator:'not_contains',value:'volunteer'}
+    ],
+    contacted_3_undecided:[
+      {field:'contact_count',operator:'gt',value:'2'},
+      {field:'support_status',operator:'eq',value:'undecided'}
+    ],
+    high_priority_never_contacted:[
+      {field:'ai_priority_rank',operator:'lt',value:'50'},
+      {field:'is_contacted',operator:'eq',value:'0'}
+    ]
+  };
+  var filters = EXAMPLES[type];
+  if(!filters) return;
+  loadFiltersIntoBuilder(filters);
+  executeSmartSearch();
+}
+window.loadExampleSearch = loadExampleSearch;
+
+// ═══ UTILITIES ═══
+function escapeHtml(s){
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 // ═══ INIT ═══
 async function initApp(){

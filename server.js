@@ -417,6 +417,561 @@ app.get(BASE + '/api/dashboard', (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════
+// FEATURE 1: VALDISTRIKT INTELLIGENCE
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/districts/search?q= - search districts by name/code/postcode
+app.get(BASE + '/api/districts/search', (req, res) => {
+  try {
+    const q = (req.query.q || '').trim();
+    if (!q || q.length < 2) return res.json({ data: [] });
+
+    const like = '%' + q + '%';
+    const rows = db.prepare(`
+      SELECT vd.id, vd.code, vd.name, vd.population, vd.registered_voters,
+             m.name as municipality_name, m.code as municipality_code,
+             c.name as county_name, c.code as county_code
+      FROM voting_districts vd
+      LEFT JOIN municipalities m ON m.id = vd.municipality_id
+      LEFT JOIN counties c ON c.id = m.county_id
+      WHERE vd.name LIKE ? OR vd.code LIKE ? OR m.name LIKE ? OR vd.postcodes LIKE ?
+      ORDER BY vd.name
+      LIMIT 30
+    `).all(like, like, like, like);
+
+    res.json({ data: rows });
+  } catch (err) {
+    console.error('District search error:', err);
+    res.status(500).json({ error: 'Search failed' });
+  }
+});
+
+// GET /api/districts/:code/intelligence - unified intelligence card
+app.get(BASE + '/api/districts/:code/intelligence', (req, res) => {
+  try {
+    const code = req.params.code;
+
+    // Get district
+    const district = db.prepare(`
+      SELECT vd.*, m.name as municipality_name, m.code as municipality_code,
+             c.name as county_name, c.code as county_code
+      FROM voting_districts vd
+      LEFT JOIN municipalities m ON m.id = vd.municipality_id
+      LEFT JOIN counties c ON c.id = m.county_id
+      WHERE vd.code = ? OR vd.id = ?
+    `).get(code, code);
+
+    if (!district) return res.status(404).json({ error: 'District not found' });
+
+    // Election results 2022
+    const results2022 = db.prepare(`
+      SELECT er.party_code, er.votes, er.vote_percentage, er.turnout_percentage, er.total_votes,
+             p.name as party_name, p.color as party_color
+      FROM election_results er
+      LEFT JOIN parties p ON p.code = er.party_code
+      WHERE er.district_code = ? AND er.election_year = 2022
+      ORDER BY er.votes DESC
+    `).all(district.code);
+
+    // Election results 2018
+    const results2018 = db.prepare(`
+      SELECT er.party_code, er.votes, er.vote_percentage, er.turnout_percentage, er.total_votes,
+             p.name as party_name, p.color as party_color
+      FROM election_results er
+      LEFT JOIN parties p ON p.code = er.party_code
+      WHERE er.district_code = ? AND er.election_year = 2018
+      ORDER BY er.votes DESC
+    `).all(district.code);
+
+    // If no district-level results, try municipality level
+    let elResults2022 = results2022;
+    let elResults2018 = results2018;
+    let resultsLevel = 'district';
+    if (elResults2022.length === 0 && district.municipality_code) {
+      elResults2022 = db.prepare(`
+        SELECT er.party_code, er.votes, er.vote_percentage, er.turnout_percentage, er.total_votes,
+               p.name as party_name, p.color as party_color
+        FROM election_results er
+        LEFT JOIN parties p ON p.code = er.party_code
+        WHERE er.municipality_code = ? AND er.election_year = 2022 AND er.level = 'municipality'
+        ORDER BY er.votes DESC
+      `).all(district.municipality_code);
+      elResults2018 = db.prepare(`
+        SELECT er.party_code, er.votes, er.vote_percentage, er.turnout_percentage, er.total_votes,
+               p.name as party_name, p.color as party_color
+        FROM election_results er
+        LEFT JOIN parties p ON p.code = er.party_code
+        WHERE er.municipality_code = ? AND er.election_year = 2018 AND er.level = 'municipality'
+        ORDER BY er.votes DESC
+      `).all(district.municipality_code);
+      resultsLevel = 'municipality';
+    }
+
+    // Demographics — try district, then municipality, then county
+    let demographics = db.prepare(
+      "SELECT * FROM area_demographics WHERE area_code = ? AND area_type = 'district' ORDER BY data_year DESC LIMIT 1"
+    ).get(district.code);
+    if (!demographics && district.municipality_code) {
+      demographics = db.prepare(
+        "SELECT * FROM area_demographics WHERE area_code = ? AND area_type = 'municipality' ORDER BY data_year DESC LIMIT 1"
+      ).get(district.municipality_code);
+    }
+    if (!demographics && district.county_code) {
+      demographics = db.prepare(
+        "SELECT * FROM area_demographics WHERE area_code = ? AND area_type = 'county' ORDER BY data_year DESC LIMIT 1"
+      ).get(district.county_code);
+    }
+
+    // Campaign activity stats (across all campaigns)
+    const campaignStats = db.prepare(`
+      SELECT
+        COUNT(DISTINCT v.id) as total_voters,
+        COUNT(DISTINCT CASE WHEN v.is_contacted = 1 THEN v.id END) as contacted_voters,
+        COUNT(DISTINCT CASE WHEN v.support_status = 'supporter' THEN v.id END) as supporters,
+        COUNT(DISTINCT CASE WHEN v.support_status = 'soft_yes' THEN v.id END) as soft_yes,
+        COUNT(DISTINCT CASE WHEN v.support_status = 'undecided' THEN v.id END) as undecided,
+        COUNT(DISTINCT CASE WHEN v.support_status = 'opposition' THEN v.id END) as opposition,
+        COUNT(c.id) as total_contacts,
+        AVG(v.ai_support_score) as avg_ai_score
+      FROM voters v
+      LEFT JOIN contacts c ON c.voter_id = v.id
+      WHERE v.district_id = ?
+    `).get(district.id);
+
+    // Compute AI district score (0-100)
+    // Based on: turnout trend, demographics, campaign penetration, support signals
+    let aiScore = 50;
+    if (elResults2022.length > 0 && elResults2018.length > 0) {
+      const turnout2022 = elResults2022[0] ? elResults2022[0].turnout_percentage || 0 : 0;
+      const turnout2018 = elResults2018[0] ? elResults2018[0].turnout_percentage || 0 : 0;
+      const turnoutTrend = turnout2022 - turnout2018;
+      aiScore += turnoutTrend * 0.5;
+    }
+    if (demographics) {
+      if (demographics.higher_education_pct) aiScore += (demographics.higher_education_pct - 30) * 0.1;
+      if (demographics.unemployment_pct) aiScore -= demographics.unemployment_pct * 0.3;
+      if (demographics.median_income) aiScore += (demographics.median_income / 350000 - 1) * 5;
+    }
+    if (campaignStats && campaignStats.total_voters > 0) {
+      const contactRate = campaignStats.contacted_voters / campaignStats.total_voters;
+      aiScore += contactRate * 10;
+      const supportRate = (campaignStats.supporters + campaignStats.soft_yes) / Math.max(campaignStats.total_voters, 1);
+      aiScore += supportRate * 15;
+    }
+    aiScore = Math.max(0, Math.min(100, Math.round(aiScore)));
+
+    res.json({
+      district,
+      election_results: { '2022': elResults2022, '2018': elResults2018, results_level: resultsLevel },
+      demographics,
+      campaign_stats: campaignStats,
+      ai_score: aiScore
+    });
+  } catch (err) {
+    console.error('District intelligence error:', err);
+    res.status(500).json({ error: 'Failed to get district intelligence' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 2: CALL RULES & QUEUE
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/call-rules/:campaignId
+app.get(BASE + '/api/call-rules/:campaignId', (req, res) => {
+  try {
+    const rules = db.prepare('SELECT * FROM call_rules WHERE campaign_id = ? ORDER BY created_at DESC').all(req.params.campaignId);
+    res.json({ data: rules });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get call rules' });
+  }
+});
+
+// POST /api/call-rules
+app.post(BASE + '/api/call-rules', (req, res) => {
+  try {
+    const { campaign_id, rule_type, rule_value } = req.body;
+    if (!campaign_id || !rule_type || rule_value === undefined) {
+      return res.status(400).json({ error: 'campaign_id, rule_type, rule_value required' });
+    }
+    const { v4: uuidv4 } = require('uuid');
+    const id = uuidv4();
+    db.prepare('INSERT INTO call_rules (id, campaign_id, rule_type, rule_value) VALUES (?,?,?,?)')
+      .run(id, campaign_id, rule_type, String(rule_value));
+    const rule = db.prepare('SELECT * FROM call_rules WHERE id = ?').get(id);
+    res.status(201).json({ data: rule });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create call rule' });
+  }
+});
+
+// DELETE /api/call-rules/:id
+app.delete(BASE + '/api/call-rules/:id', (req, res) => {
+  try {
+    db.prepare('DELETE FROM call_rules WHERE id = ?').run(req.params.id);
+    res.json({ message: 'Rule deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete rule' });
+  }
+});
+
+// GET /api/call-queue/:campaignId - get next batch applying rules
+app.get(BASE + '/api/call-queue/:campaignId', (req, res) => {
+  try {
+    const campaignId = req.params.campaignId;
+    const batchSize = parseInt(req.query.limit) || 20;
+
+    // Fetch active rules
+    const rules = db.prepare("SELECT * FROM call_rules WHERE campaign_id = ? AND is_active = 1").all(campaignId);
+    const ruleMap = {};
+    rules.forEach(r => { ruleMap[r.rule_type] = r.rule_value; });
+
+    // Quiet hours check (default 09:00–20:00)
+    const quietStart = ruleMap['quiet_hours_start'] || '09:00';
+    const quietEnd = ruleMap['quiet_hours_end'] || '20:00';
+    const nowH = new Date().getHours();
+    const nowM = new Date().getMinutes();
+    const nowMins = nowH * 60 + nowM;
+    const [qsh, qsm] = quietStart.split(':').map(Number);
+    const [qeh, qem] = quietEnd.split(':').map(Number);
+    const inQuiet = nowMins < (qsh * 60 + qsm) || nowMins >= (qeh * 60 + qem);
+    if (inQuiet) {
+      return res.json({ data: [], quiet_hours: true, message: `Calling allowed ${quietStart}–${quietEnd} only` });
+    }
+
+    const maxPerWeek = ruleMap['max_per_week'] ? parseInt(ruleMap['max_per_week']) : null;
+    const maxTotal = ruleMap['max_total'] ? parseInt(ruleMap['max_total']) : null;
+    const autoStopOutcome = ruleMap['auto_stop_outcome'] || null;
+    const requeueDays = ruleMap['requeue_days'] ? parseInt(ruleMap['requeue_days']) : null;
+
+    // Build exclusion conditions
+    let excludeSubquery = '';
+    const params = [campaignId];
+
+    if (autoStopOutcome) {
+      excludeSubquery += ` AND v.support_status != ?`;
+      params.push(autoStopOutcome);
+    }
+
+    if (maxTotal !== null) {
+      excludeSubquery += ` AND v.contact_count < ?`;
+      params.push(maxTotal);
+    }
+
+    if (maxPerWeek !== null) {
+      excludeSubquery += ` AND (
+        SELECT COUNT(*) FROM contacts c2
+        WHERE c2.voter_id = v.id AND c2.created_at > datetime('now', '-7 days')
+      ) < ?`;
+      params.push(maxPerWeek);
+    }
+
+    if (requeueDays !== null) {
+      // Include voters not contacted, OR contacted more than requeueDays ago
+      excludeSubquery += ` AND (v.last_contacted_at IS NULL OR v.last_contacted_at < datetime('now', '-' || ? || ' days'))`;
+      params.push(requeueDays);
+    } else {
+      // Default: skip recently contacted (within 24h)
+      excludeSubquery += ` AND (v.last_contacted_at IS NULL OR v.last_contacted_at < datetime('now', '-1 day'))`;
+    }
+
+    params.push(batchSize);
+
+    const voters = db.prepare(`
+      SELECT v.*,
+             (SELECT COUNT(*) FROM contacts c WHERE c.voter_id = v.id) as total_contacts_real
+      FROM voters v
+      WHERE v.campaign_id = ? ${excludeSubquery}
+        AND v.phone IS NOT NULL AND v.phone != ''
+      ORDER BY
+        CASE WHEN v.support_status = 'undecided' THEN 0
+             WHEN v.support_status = 'unknown' THEN 1
+             WHEN v.support_status = 'soft_yes' THEN 2
+             ELSE 3 END,
+        COALESCE(v.ai_priority_rank, 999),
+        v.contact_count ASC
+      LIMIT ?
+    `).all(...params);
+
+    res.json({ data: voters, rules_applied: ruleMap });
+  } catch (err) {
+    console.error('Call queue error:', err);
+    res.status(500).json({ error: 'Failed to get call queue' });
+  }
+});
+
+// POST /api/call-queue/complete
+app.post(BASE + '/api/call-queue/complete', (req, res) => {
+  try {
+    const { voter_id, campaign_id, outcome, notes, agent_id } = req.body;
+    if (!voter_id || !campaign_id || !outcome) {
+      return res.status(400).json({ error: 'voter_id, campaign_id, outcome required' });
+    }
+    const { v4: uuidv4 } = require('uuid');
+    // Insert contact record
+    db.prepare(`INSERT INTO contacts (id, voter_id, campaign_id, agent_id, contact_type, outcome, notes)
+      VALUES (?,?,?,?,?,?,?)`)
+      .run(uuidv4(), voter_id, campaign_id, agent_id || 'system', 'phone', outcome, notes || null);
+    // Update voter stats
+    db.prepare(`UPDATE voters SET
+      is_contacted = 1,
+      contact_count = contact_count + 1,
+      last_contacted_at = datetime('now'),
+      support_status = CASE WHEN ? NOT IN ('no_answer','invalid') THEN ? ELSE support_status END,
+      updated_at = datetime('now')
+      WHERE id = ?`)
+      .run(outcome, outcome, voter_id);
+    // Mark any queue entry as completed
+    db.prepare(`UPDATE call_queue SET status = 'completed', outcome = ?, completed_at = datetime('now')
+      WHERE voter_id = ? AND campaign_id = ? AND status IN ('queued','in_progress')`)
+      .run(outcome, voter_id, campaign_id);
+    res.json({ message: 'Call completed', outcome });
+  } catch (err) {
+    console.error('Complete call error:', err);
+    res.status(500).json({ error: 'Failed to complete call' });
+  }
+});
+
+// GET /api/call-queue/stats/:campaignId
+app.get(BASE + '/api/call-queue/stats/:campaignId', (req, res) => {
+  try {
+    const campaignId = req.params.campaignId;
+    const total = db.prepare("SELECT COUNT(*) as c FROM voters WHERE campaign_id = ? AND phone IS NOT NULL AND phone != ''").get(campaignId);
+    const contacted = db.prepare("SELECT COUNT(*) as c FROM voters WHERE campaign_id = ? AND is_contacted = 1").get(campaignId);
+    const todayContacts = db.prepare("SELECT COUNT(*) as c FROM contacts WHERE campaign_id = ? AND created_at > datetime('now', 'start of day')").get(campaignId);
+    const weekContacts = db.prepare("SELECT COUNT(*) as c FROM contacts WHERE campaign_id = ? AND created_at > datetime('now', '-7 days')").get(campaignId);
+    const outcomes = db.prepare(`
+      SELECT outcome, COUNT(*) as count
+      FROM contacts WHERE campaign_id = ?
+      GROUP BY outcome ORDER BY count DESC
+    `).all(campaignId);
+    res.json({
+      total_callable: total.c,
+      contacted: contacted.c,
+      remaining: total.c - contacted.c,
+      contact_rate: total.c > 0 ? Math.round((contacted.c / total.c) * 100) : 0,
+      today_contacts: todayContacts.c,
+      week_contacts: weekContacts.c,
+      outcomes
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get queue stats' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 3: SMART SEARCHES
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/smart-searches
+app.get(BASE + '/api/smart-searches', (req, res) => {
+  try {
+    const { campaign_id } = req.query;
+    let where = '';
+    const params = [];
+    if (campaign_id) { where = 'WHERE campaign_id = ? OR campaign_id IS NULL'; params.push(campaign_id); }
+    const rows = db.prepare(`SELECT * FROM smart_searches ${where} ORDER BY updated_at DESC`).all(...params);
+    res.json({ data: rows });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get smart searches' });
+  }
+});
+
+// POST /api/smart-searches
+app.post(BASE + '/api/smart-searches', (req, res) => {
+  try {
+    const { name, description, campaign_id, filters_json, is_shared } = req.body;
+    if (!name || !filters_json) return res.status(400).json({ error: 'name and filters_json required' });
+    const { v4: uuidv4 } = require('uuid');
+    const id = uuidv4();
+    const filtersStr = typeof filters_json === 'string' ? filters_json : JSON.stringify(filters_json);
+    db.prepare(`INSERT INTO smart_searches (id, name, description, campaign_id, filters_json, is_shared)
+      VALUES (?,?,?,?,?,?)`)
+      .run(id, name, description || null, campaign_id || null, filtersStr, is_shared !== undefined ? (is_shared ? 1 : 0) : 1);
+    const row = db.prepare('SELECT * FROM smart_searches WHERE id = ?').get(id);
+    res.status(201).json({ data: row });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create smart search' });
+  }
+});
+
+// PUT /api/smart-searches/:id
+app.put(BASE + '/api/smart-searches/:id', (req, res) => {
+  try {
+    const existing = db.prepare('SELECT * FROM smart_searches WHERE id = ?').get(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+    const { name, description, filters_json, is_shared } = req.body;
+    const filtersStr = filters_json ? (typeof filters_json === 'string' ? filters_json : JSON.stringify(filters_json)) : existing.filters_json;
+    db.prepare(`UPDATE smart_searches SET
+      name = COALESCE(?, name),
+      description = COALESCE(?, description),
+      filters_json = ?,
+      is_shared = COALESCE(?, is_shared),
+      updated_at = datetime('now')
+      WHERE id = ?`)
+      .run(name || null, description || null, filtersStr, is_shared !== undefined ? (is_shared ? 1 : 0) : null, req.params.id);
+    const updated = db.prepare('SELECT * FROM smart_searches WHERE id = ?').get(req.params.id);
+    res.json({ data: updated });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update smart search' });
+  }
+});
+
+// DELETE /api/smart-searches/:id
+app.delete(BASE + '/api/smart-searches/:id', (req, res) => {
+  try {
+    db.prepare('DELETE FROM smart_searches WHERE id = ?').run(req.params.id);
+    res.json({ message: 'Deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete' });
+  }
+});
+
+// Helper: build voter query from filters
+function buildSmartSearchQuery(filters) {
+  const conditions = [];
+  const params = [];
+
+  function addCondition(group) {
+    if (!Array.isArray(group)) return;
+    const parts = [];
+    group.forEach(function(f) {
+      const field = f.field;
+      const op = f.operator;
+      const val = f.value;
+      const val2 = f.value2;
+
+      if (field === 'support_status') {
+        if (op === 'eq') { parts.push('v.support_status = ?'); params.push(val); }
+        else if (op === 'neq') { parts.push('v.support_status != ?'); params.push(val); }
+        else if (op === 'in' && Array.isArray(val)) {
+          parts.push('v.support_status IN (' + val.map(() => '?').join(',') + ')');
+          val.forEach(v => params.push(v));
+        }
+      } else if (field === 'contact_count') {
+        if (op === 'gt') { parts.push('v.contact_count > ?'); params.push(Number(val)); }
+        else if (op === 'lt') { parts.push('v.contact_count < ?'); params.push(Number(val)); }
+        else if (op === 'eq') { parts.push('v.contact_count = ?'); params.push(Number(val)); }
+        else if (op === 'between') { parts.push('v.contact_count BETWEEN ? AND ?'); params.push(Number(val)); params.push(Number(val2)); }
+      } else if (field === 'last_contacted_at') {
+        if (op === 'null') { parts.push('v.last_contacted_at IS NULL'); }
+        else if (op === 'not_null') { parts.push('v.last_contacted_at IS NOT NULL'); }
+        else if (op === 'before') { parts.push('v.last_contacted_at < ?'); params.push(val); }
+        else if (op === 'after') { parts.push('v.last_contacted_at > ?'); params.push(val); }
+        else if (op === 'between') { parts.push('v.last_contacted_at BETWEEN ? AND ?'); params.push(val); params.push(val2); }
+        else if (op === 'days_ago_gt') { parts.push("v.last_contacted_at < datetime('now', '-' || ? || ' days')"); params.push(Number(val)); }
+        else if (op === 'days_ago_lt') { parts.push("v.last_contacted_at > datetime('now', '-' || ? || ' days')"); params.push(Number(val)); }
+      } else if (field === 'district_code') {
+        const dist = db.prepare('SELECT id FROM voting_districts WHERE code = ?').get(val);
+        if (dist) { parts.push('v.district_id = ?'); params.push(dist.id); }
+      } else if (field === 'municipality') {
+        const mun = db.prepare('SELECT id FROM municipalities WHERE code = ? OR name LIKE ?').get(val, '%'+val+'%');
+        if (mun) { parts.push('v.municipality_id = ?'); params.push(mun.id); }
+      } else if (field === 'county') {
+        const county = db.prepare('SELECT id FROM counties WHERE code = ? OR name LIKE ?').get(val, '%'+val+'%');
+        if (county) {
+          parts.push('v.municipality_id IN (SELECT id FROM municipalities WHERE county_id = ?)');
+          params.push(county.id);
+        }
+      } else if (field === 'age_group') {
+        if (op === 'eq') { parts.push('v.age_group = ?'); params.push(val); }
+        else if (op === 'in' && Array.isArray(val)) {
+          parts.push('v.age_group IN (' + val.map(() => '?').join(',') + ')');
+          val.forEach(v => params.push(v));
+        }
+      } else if (field === 'tags') {
+        if (op === 'contains') { parts.push('v.tags LIKE ?'); params.push('%' + val + '%'); }
+        else if (op === 'not_contains') { parts.push('(v.tags NOT LIKE ? OR v.tags IS NULL)'); params.push('%' + val + '%'); }
+      } else if (field === 'ai_priority_rank') {
+        if (op === 'gt') { parts.push('v.ai_priority_rank > ?'); params.push(Number(val)); }
+        else if (op === 'lt') { parts.push('v.ai_priority_rank < ?'); params.push(Number(val)); }
+        else if (op === 'between') { parts.push('v.ai_priority_rank BETWEEN ? AND ?'); params.push(Number(val)); params.push(Number(val2)); }
+      } else if (field === 'is_contacted') {
+        parts.push('v.is_contacted = ?'); params.push(val ? 1 : 0);
+      } else if (field === 'campaign_id') {
+        parts.push('v.campaign_id = ?'); params.push(val);
+      }
+    });
+    if (parts.length > 0) {
+      const logic = group[0] && group[0].logic === 'OR' ? ' OR ' : ' AND ';
+      conditions.push('(' + parts.join(logic) + ')');
+    }
+  }
+
+  // filters can be a flat array (all AND) or array of groups
+  if (Array.isArray(filters) && filters.length > 0) {
+    if (Array.isArray(filters[0])) {
+      filters.forEach(group => addCondition(group));
+    } else {
+      addCondition(filters);
+    }
+  }
+
+  const where = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
+  return { where, params };
+}
+
+// POST /api/smart-searches/execute
+app.post(BASE + '/api/smart-searches/execute', (req, res) => {
+  try {
+    const { filters, limit, offset } = req.body;
+    if (!filters) return res.status(400).json({ error: 'filters required' });
+
+    const filtersArr = typeof filters === 'string' ? JSON.parse(filters) : filters;
+    const { where, params } = buildSmartSearchQuery(filtersArr);
+    const lim = parseInt(limit) || 100;
+    const off = parseInt(offset) || 0;
+
+    const countRow = db.prepare(`SELECT COUNT(*) as c FROM voters v ${where}`).get(...params);
+    const voters = db.prepare(`
+      SELECT v.id, v.full_name, v.first_name, v.last_name, v.address, v.postcode, v.city,
+             v.phone, v.support_status, v.contact_count, v.last_contacted_at,
+             v.ai_priority_rank, v.ai_support_score, v.age_group, v.tags, v.campaign_id
+      FROM voters v ${where}
+      ORDER BY COALESCE(v.ai_priority_rank, 9999), v.contact_count ASC
+      LIMIT ? OFFSET ?
+    `).all(...params, lim, off);
+
+    res.json({ data: voters, total: countRow.c });
+  } catch (err) {
+    console.error('Smart search execute error:', err);
+    res.status(500).json({ error: 'Failed to execute search: ' + err.message });
+  }
+});
+
+// GET /api/smart-searches/:id/results
+app.get(BASE + '/api/smart-searches/:id/results', (req, res) => {
+  try {
+    const search = db.prepare('SELECT * FROM smart_searches WHERE id = ?').get(req.params.id);
+    if (!search) return res.status(404).json({ error: 'Search not found' });
+
+    const filters = JSON.parse(search.filters_json || '[]');
+    const { where, params } = buildSmartSearchQuery(filters);
+    const lim = parseInt(req.query.limit) || 100;
+    const off = parseInt(req.query.offset) || 0;
+
+    const countRow = db.prepare(`SELECT COUNT(*) as c FROM voters v ${where}`).get(...params);
+    const voters = db.prepare(`
+      SELECT v.id, v.full_name, v.first_name, v.last_name, v.address, v.postcode, v.city,
+             v.phone, v.support_status, v.contact_count, v.last_contacted_at,
+             v.ai_priority_rank, v.ai_support_score, v.age_group, v.tags, v.campaign_id
+      FROM voters v ${where}
+      ORDER BY COALESCE(v.ai_priority_rank, 9999), v.contact_count ASC
+      LIMIT ? OFFSET ?
+    `).all(...params, lim, off);
+
+    // Update result count and last_run_at
+    db.prepare("UPDATE smart_searches SET result_count = ?, last_run_at = datetime('now') WHERE id = ?")
+      .run(countRow.c, search.id);
+
+    res.json({ data: voters, total: countRow.c, search });
+  } catch (err) {
+    console.error('Smart search results error:', err);
+    res.status(500).json({ error: 'Failed to get results: ' + err.message });
+  }
+});
+
 // SPA fallback
 app.get(BASE + '/*', (req, res) => {
   if (req.path.startsWith(BASE + '/api/')) return res.status(404).json({ error: 'Not found' });

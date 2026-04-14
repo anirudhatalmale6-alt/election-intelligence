@@ -363,6 +363,66 @@ db.exec(`
     value TEXT,
     updated_at TEXT DEFAULT (datetime('now'))
   );
+
+  -- ═══════════════════════════════════════════════════════════
+  -- CALL RULES (Feature 2)
+  -- ═══════════════════════════════════════════════════════════
+  CREATE TABLE IF NOT EXISTS call_rules (
+    id TEXT PRIMARY KEY,
+    campaign_id TEXT NOT NULL,
+    rule_type TEXT NOT NULL,
+    rule_value TEXT NOT NULL,
+    is_active INTEGER DEFAULT 1,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_call_rules_campaign ON call_rules(campaign_id);
+
+  -- ═══════════════════════════════════════════════════════════
+  -- CALL QUEUE (Feature 2)
+  -- ═══════════════════════════════════════════════════════════
+  CREATE TABLE IF NOT EXISTS call_queue (
+    id TEXT PRIMARY KEY,
+    campaign_id TEXT NOT NULL,
+    voter_id TEXT NOT NULL,
+    assigned_to TEXT,
+    priority INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'queued',
+    scheduled_at TEXT,
+    completed_at TEXT,
+    outcome TEXT,
+    notes TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id),
+    FOREIGN KEY (voter_id) REFERENCES voters(id),
+    FOREIGN KEY (assigned_to) REFERENCES users(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_call_queue_campaign ON call_queue(campaign_id);
+  CREATE INDEX IF NOT EXISTS idx_call_queue_voter ON call_queue(voter_id);
+  CREATE INDEX IF NOT EXISTS idx_call_queue_status ON call_queue(status);
+  CREATE INDEX IF NOT EXISTS idx_call_queue_assigned ON call_queue(assigned_to);
+
+  -- ═══════════════════════════════════════════════════════════
+  -- SMART SEARCHES (Feature 3)
+  -- ═══════════════════════════════════════════════════════════
+  CREATE TABLE IF NOT EXISTS smart_searches (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    campaign_id TEXT,
+    filters_json TEXT NOT NULL,
+    created_by TEXT,
+    is_shared INTEGER DEFAULT 1,
+    result_count INTEGER DEFAULT 0,
+    last_run_at TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_smart_searches_campaign ON smart_searches(campaign_id);
 `);
 
 module.exports = db;
