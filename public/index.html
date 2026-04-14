@@ -334,10 +334,85 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;
       </select>
     </div>
   </div>
-  <div class="map-container">
-    <div id="swedenMap"></div>
+
+  <!-- Postcode Search Bar -->
+  <div style="margin-bottom:16px;display:flex;gap:10px;align-items:center">
+    <div style="position:relative;flex:1;max-width:400px">
+      <i class="fas fa-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.85rem"></i>
+      <input type="text" id="postcodeInput" placeholder="Sok postnummer (t.ex. 11120)..." maxlength="5"
+        style="width:100%;padding:12px 14px 12px 40px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:1rem;font-family:var(--mono)"
+        onkeydown="if(event.key==='Enter') searchPostcode()">
+    </div>
+    <button class="btn btn-primary" onclick="searchPostcode()" id="postcodeSearchBtn">
+      <i class="fas fa-map-marker-alt"></i> Sok
+    </button>
+    <button class="btn btn-ghost btn-sm" onclick="clearPostcodeSearch()" id="postcodeClearBtn" style="display:none">
+      <i class="fas fa-times"></i> Rensa
+    </button>
   </div>
-  <div class="map-legend" id="mapLegend"></div>
+
+  <div style="display:flex;gap:16px;flex-wrap:wrap">
+    <!-- Map Column -->
+    <div style="flex:1;min-width:400px">
+      <div class="map-container">
+        <div id="swedenMap"></div>
+      </div>
+      <div class="map-legend" id="mapLegend"></div>
+    </div>
+
+    <!-- Postcode Results Panel (hidden by default) -->
+    <div id="postcodeResultsPanel" style="display:none;flex:0 0 420px;max-width:420px;max-height:calc(100vh - 200px);overflow-y:auto;padding-right:4px">
+      <!-- Area Info Card -->
+      <div class="card" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:40px;height:40px;border-radius:8px;background:var(--accent-gold);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0a0e1a;font-size:1.1rem" id="pcIcon">?</div>
+          <div>
+            <h3 style="margin:0;font-size:1.1rem" id="pcAreaTitle">-</h3>
+            <div style="color:var(--text-secondary);font-size:.82rem" id="pcAreaSubtitle">-</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="pcAreaInfo"></div>
+      </div>
+
+      <!-- Election Results Card -->
+      <div class="card" style="margin-bottom:12px">
+        <h4 style="margin:0 0 12px 0;font-size:.85rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary)">
+          <i class="fas fa-chart-bar" style="margin-right:6px;color:var(--accent-gold)"></i>Valresultat 2022
+        </h4>
+        <div id="pcResultsBars2022"></div>
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+          <h4 style="margin:0 0 12px 0;font-size:.85rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary)">
+            <i class="fas fa-history" style="margin-right:6px;color:var(--text-muted)"></i>Valresultat 2018
+          </h4>
+          <div id="pcResultsBars2018"></div>
+        </div>
+        <div style="margin-top:12px">
+          <canvas id="pcCompareChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Demographics Card -->
+      <div class="card" style="margin-bottom:12px" id="pcDemographicsCard" style="display:none">
+        <h4 style="margin:0 0 12px 0;font-size:.85rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary)">
+          <i class="fas fa-users" style="margin-right:6px;color:var(--accent-gold)"></i>Demografi
+        </h4>
+        <div id="pcDemographics"></div>
+      </div>
+
+      <!-- AI Analysis Card -->
+      <div class="card" style="margin-bottom:12px">
+        <h4 style="margin:0 0 12px 0;font-size:.85rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary)">
+          <i class="fas fa-robot" style="margin-right:6px;color:var(--accent-gold)"></i>AI-analys
+        </h4>
+        <div id="pcAiAnalysis" style="color:var(--text-secondary);font-size:.9rem;line-height:1.6">
+          Klicka "Analysera" for AI-driven insikt om detta omrade.
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="runAiAnalysis()" id="pcAiBtn" style="margin-top:10px">
+          <i class="fas fa-brain"></i> Analysera med AI
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- CAMPAIGNS -->
@@ -854,6 +929,237 @@ function renderMapLegend(){
   });
   document.getElementById('mapLegend').innerHTML = html;
 }
+
+// ═══ POSTCODE SEARCH ═══
+var _pcData = null;
+var _pcMarker = null;
+var _pcCompareChart = null;
+var _highlightedCounty = null;
+
+async function searchPostcode(){
+  var input = document.getElementById('postcodeInput').value.replace(/\s/g,'');
+  if(!input || input.length < 3) { showAlert('Ange minst 3 siffror','warning'); return; }
+  // Pad to 5 if needed
+  while(input.length < 5) input += '0';
+
+  var btn = document.getElementById('postcodeSearchBtn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Soker...';
+  btn.disabled = true;
+
+  try {
+    var data = await apiFetch('/postcode/'+input);
+    _pcData = data;
+    renderPostcodeResults(data);
+    highlightCountyOnMap(data.county ? data.county.code : null, data.latitude, data.longitude);
+    document.getElementById('postcodeResultsPanel').style.display = '';
+    document.getElementById('postcodeClearBtn').style.display = '';
+  } catch(e){
+    showAlert('Postnummer hittades inte. Prova ett annat.','warning');
+  } finally {
+    btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Sok';
+    btn.disabled = false;
+  }
+}
+window.searchPostcode = searchPostcode;
+
+function clearPostcodeSearch(){
+  document.getElementById('postcodeInput').value = '';
+  document.getElementById('postcodeResultsPanel').style.display = 'none';
+  document.getElementById('postcodeClearBtn').style.display = 'none';
+  _pcData = null;
+  if(_pcMarker && _map){ _map.removeLayer(_pcMarker); _pcMarker = null; }
+  if(_highlightedCounty && _map){ _map.removeLayer(_highlightedCounty); _highlightedCounty = null; }
+  if(_map) _map.setView([62.5,17],5);
+}
+window.clearPostcodeSearch = clearPostcodeSearch;
+
+function highlightCountyOnMap(countyCode, lat, lng){
+  if(!_map) return;
+  // Remove old highlights
+  if(_pcMarker){ _map.removeLayer(_pcMarker); _pcMarker = null; }
+  if(_highlightedCounty){ _map.removeLayer(_highlightedCounty); _highlightedCounty = null; }
+
+  // Add marker at postcode location
+  if(lat && lng){
+    _pcMarker = L.marker([lat, lng], {
+      icon: L.divIcon({
+        html: '<div style="background:var(--accent-gold);width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)"></div>',
+        iconSize:[22,22], iconAnchor:[11,11], className:''
+      })
+    }).addTo(_map);
+    _map.setView([lat, lng], 7, {animate:true});
+  }
+
+  // Highlight county on GeoJSON layer
+  if(_geoLayer && countyCode){
+    _geoLayer.eachLayer(function(layer){
+      var code = layer.feature.properties.code;
+      if(code === countyCode){
+        layer.setStyle({weight:3, color:'var(--accent-gold)', fillOpacity:0.7});
+        layer.bringToFront();
+      } else {
+        layer.setStyle({weight:1, color:'rgba(255,255,255,0.15)', fillOpacity:0.3});
+      }
+    });
+  }
+}
+
+function renderPostcodeResults(data){
+  // Area info
+  var icon = data.postcode ? data.postcode.substring(0,2) : '?';
+  document.getElementById('pcIcon').textContent = icon;
+  document.getElementById('pcAreaTitle').textContent = (data.city || 'Okant') + ' ' + (data.postcode || '');
+  document.getElementById('pcAreaSubtitle').textContent = (data.county ? data.county.name : '') + (data.municipality ? ' / ' + data.municipality.name : '');
+
+  var info = '';
+  if(data.county && data.county.population){
+    info += '<div style="padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px"><div style="font-size:.72rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px">Befolkning (lan)</div><div style="font-size:1.1rem;font-weight:600;font-family:var(--mono);margin-top:2px">'+data.county.population.toLocaleString()+'</div></div>';
+  }
+  if(data.municipality && data.municipality.population){
+    info += '<div style="padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px"><div style="font-size:.72rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px">Befolkning (kommun)</div><div style="font-size:1.1rem;font-weight:600;font-family:var(--mono);margin-top:2px">'+data.municipality.population.toLocaleString()+'</div></div>';
+  }
+  if(data.nearby_cities && data.nearby_cities.length > 0){
+    info += '<div style="padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px;grid-column:span 2"><div style="font-size:.72rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px;margin-bottom:4px">Narliggande orter</div><div style="font-size:.85rem;color:var(--text-secondary)">'+data.nearby_cities.join(', ')+'</div></div>';
+  }
+  document.getElementById('pcAreaInfo').innerHTML = info;
+
+  // Election results bars
+  renderResultBars('pcResultsBars2022', data.election_results['2022'] || []);
+  renderResultBars('pcResultsBars2018', data.election_results['2018'] || []);
+
+  // Comparison chart
+  renderCompareChart(data.election_results['2022'] || [], data.election_results['2018'] || []);
+
+  // Demographics
+  renderDemographics(data.demographics);
+
+  // Reset AI analysis
+  document.getElementById('pcAiAnalysis').textContent = 'Klicka "Analysera" for AI-driven insikt om detta omrade.';
+  document.getElementById('pcAiBtn').disabled = false;
+  document.getElementById('pcAiBtn').innerHTML = '<i class="fas fa-brain"></i> Analysera med AI';
+}
+
+function renderResultBars(containerId, results){
+  if(!results || results.length === 0){
+    document.getElementById(containerId).innerHTML = '<div style="color:var(--text-muted);font-size:.85rem">Inga data tillgangliga</div>';
+    return;
+  }
+  var sorted = results.slice().sort(function(a,b){ return (b.vote_percentage||0)-(a.vote_percentage||0); });
+  var maxPct = sorted[0].vote_percentage || 1;
+  var html = '';
+  sorted.forEach(function(r){
+    var color = PARTY_COLORS[r.party_code] || '#888';
+    var pct = r.vote_percentage || 0;
+    var barW = Math.max(2, (pct / maxPct) * 100);
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
+    html += '<div style="width:28px;font-size:.78rem;font-weight:600;color:var(--text-secondary);text-align:right;flex-shrink:0">' + r.party_code + '</div>';
+    html += '<div style="flex:1;height:18px;background:rgba(255,255,255,0.04);border-radius:4px;overflow:hidden;position:relative">';
+    html += '<div style="height:100%;width:'+barW+'%;background:'+color+';border-radius:4px;transition:width .5s ease"></div>';
+    html += '</div>';
+    html += '<div style="width:52px;font-size:.78rem;font-family:var(--mono);color:var(--text-primary);text-align:right;flex-shrink:0;font-weight:600">'+pct.toFixed(1)+'%</div>';
+    html += '</div>';
+  });
+  // Add turnout if available
+  if(sorted[0].turnout_percentage){
+    html += '<div style="margin-top:8px;font-size:.78rem;color:var(--text-muted)"><i class="fas fa-vote-yea" style="margin-right:4px"></i>Valdeltagande: '+sorted[0].turnout_percentage.toFixed(1)+'%</div>';
+  }
+  document.getElementById(containerId).innerHTML = html;
+}
+
+function renderCompareChart(r2022, r2018){
+  if(!r2022.length || !r2018.length) return;
+  var parties = r2022.map(function(r){ return r.party_code; });
+  var d2022 = parties.map(function(p){ var f = r2022.find(function(r){return r.party_code===p}); return f ? f.vote_percentage : 0; });
+  var d2018 = parties.map(function(p){ var f = r2018.find(function(r){return r.party_code===p}); return f ? f.vote_percentage : 0; });
+
+  var ctx = document.getElementById('pcCompareChart');
+  if(_pcCompareChart) _pcCompareChart.destroy();
+  _pcCompareChart = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: parties,
+      datasets:[
+        { label:'2022', data:d2022, backgroundColor: parties.map(function(p){return PARTY_COLORS[p]||'#888'}), borderRadius:3, borderSkipped:false },
+        { label:'2018', data:d2018, backgroundColor: parties.map(function(p){var c=PARTY_COLORS[p]||'#888';return c+'80'}), borderRadius:3, borderSkipped:false }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,position:'bottom',labels:{color:'#7a8599',boxWidth:12,padding:8,font:{size:10}}},
+        title:{display:true,text:'Jamforelse 2022 vs 2018',color:'#7a8599',font:{size:11},padding:{bottom:8}},
+        tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+c.raw.toFixed(1)+'%'}}}
+      },
+      scales:{
+        y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#7a8599',callback:function(v){return v+'%'},font:{size:10}}},
+        x:{grid:{display:false},ticks:{color:'#7a8599',font:{size:10}}}
+      }
+    }
+  });
+}
+
+function renderDemographics(demo){
+  var card = document.getElementById('pcDemographicsCard');
+  var container = document.getElementById('pcDemographics');
+  if(!demo){
+    container.innerHTML = '<div style="color:var(--text-muted);font-size:.85rem">Ingen demografisk data tillganglig</div>';
+    return;
+  }
+  var items = [
+    {label:'Medianlder', value: demo.median_age ? demo.median_age.toFixed(0)+' ar' : '-', icon:'fa-birthday-cake'},
+    {label:'Medianinkomst', value: demo.median_income ? Math.round(demo.median_income/1000)+'k SEK' : '-', icon:'fa-coins'},
+    {label:'Utrikesfoddda', value: demo.foreign_born_pct ? demo.foreign_born_pct.toFixed(1)+'%' : '-', icon:'fa-globe'},
+    {label:'Hogre utbildning', value: demo.higher_education_pct ? demo.higher_education_pct.toFixed(1)+'%' : '-', icon:'fa-graduation-cap'},
+    {label:'Arbetsloshet', value: demo.unemployment_pct ? demo.unemployment_pct.toFixed(1)+'%' : '-', icon:'fa-briefcase'},
+    {label:'Hushallsstorlek', value: demo.avg_household_size ? demo.avg_household_size.toFixed(1) : '-', icon:'fa-home'}
+  ];
+  var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  items.forEach(function(item){
+    html += '<div style="padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px">';
+    html += '<div style="font-size:.72rem;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px"><i class="fas '+item.icon+'" style="margin-right:4px;width:14px;text-align:center"></i>'+item.label+'</div>';
+    html += '<div style="font-size:1rem;font-weight:600;font-family:var(--mono);margin-top:2px">'+item.value+'</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+async function runAiAnalysis(){
+  if(!_pcData) return;
+  var btn = document.getElementById('pcAiBtn');
+  var container = document.getElementById('pcAiAnalysis');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyserar...';
+  container.innerHTML = '<div style="color:var(--text-muted)"><i class="fas fa-spinner fa-spin"></i> AI analyserar omradet...</div>';
+
+  try {
+    var body = {
+      county_code: _pcData.county ? _pcData.county.code : null,
+      postcode: _pcData.postcode,
+      county_name: _pcData.county ? _pcData.county.name : null,
+      municipality_name: _pcData.municipality ? _pcData.municipality.name : null,
+      results_2022: _pcData.election_results['2022'] || [],
+      results_2018: _pcData.election_results['2018'] || [],
+      demographics: _pcData.demographics
+    };
+    var resp = await fetch(API_BASE + '/ai/analyze-area', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+localStorage.getItem('election_token')},
+      body:JSON.stringify(body)
+    });
+    var result = await resp.json();
+    if(result.analysis){
+      container.innerHTML = '<div style="white-space:pre-wrap;line-height:1.7">' + result.analysis.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>';
+    } else {
+      container.innerHTML = '<div style="color:var(--text-muted)">AI-analys ej tillganglig. Kontrollera API-nyckel.</div>';
+    }
+  } catch(e){
+    container.innerHTML = '<div style="color:#e74c3c">Fel vid AI-analys: ' + e.message + '</div>';
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-brain"></i> Analysera igen';
+}
+window.runAiAnalysis = runAiAnalysis;
 
 // ═══ CAMPAIGNS ═══
 async function loadCampaigns(){
